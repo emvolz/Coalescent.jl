@@ -1,0 +1,207 @@
+
+modelname: quest1
+version: 0.0.1
+
+births:
+  - source: hostA
+    recipient: hostA
+    rate: b*(hostA)*(1-hostA/KA)
+  - source: hostA1
+    recipient: hostA1
+    rate: b*(hostA1)*(1-hostA1/KA1)
+  - source: hostA2
+    recipient: hostA2
+    rate: b*(hostA2)*(1-hostA2/KA2)
+  - source: hostA3
+    recipient: hostA3
+    rate: b*(hostA3)*(1-hostA3/KA3)
+  - source: hostB
+    recipient: hostB
+    rate: b*(hostB)*(1-hostB/KB)
+  - source: hostB1
+    recipient: hostB1
+    rate: b*(hostB1)*(1-hostB1/KB1)
+  - source: hostB2
+    recipient: hostB2
+    rate: b*(hostB2)*(1-hostB2/KB2)
+  - source: hostB3
+    recipient: hostB3
+    rate: b*(hostB3)*(1-hostB3/KB3)
+  - source: hostC
+    recipient: hostC
+    rate: b*(hostC)*(1-hostC/KC)
+  - source: hostC1
+    recipient: hostC1
+    rate: b*(hostC1)*(1-hostC1/KC1)
+  - source: hostC2
+    recipient: hostC2
+    rate: b*(hostC2)*(1-hostC2/KC2)
+  - source: hostC3
+    recipient: hostC3
+    rate: b*(hostC3)*(1-hostC3/KC3)
+  - source: human
+    recipient: human 
+    rate: 2b*human
+
+deaths:
+  - deme: hostA
+    rate: gamma*(hostA)
+  - deme: hostA1
+    rate: gamma*(hostA1)
+  - deme: hostA2
+    rate: gamma*(hostA2)
+  - deme: hostA3
+    rate: gamma*(hostA3)
+  - deme: hostB
+    rate: gamma*(hostB)
+  - deme: hostB1
+    rate: gamma*(hostB1)
+  - deme: hostB2
+    rate: gamma*(hostB2)
+  - deme: hostB3
+    rate: gamma*(hostB3)
+  - deme: hostC
+    rate: gamma*(hostC)
+  - deme: hostC1
+    rate: gamma*(hostC1)
+  - deme: hostC2
+    rate: gamma*(hostC2)
+  - deme: hostC3
+    rate: gamma*(hostC3)
+  - deme: human
+    rate: gamma*human
+
+helpers: 
+  - name: test
+    definition: human 
+
+migrations:
+  - source: hostA
+    recipient: hostA1
+    rate: mu*hostA
+  - source: hostA
+    recipient: hostA2
+    rate: mu*hostA
+  - source: hostA
+    recipient: hostA3
+    rate: mu*hostA
+  - source: hostB
+    recipient: hostB1
+    rate: mu*hostB
+  - source: hostB
+    recipient: hostB2
+    rate: mu*hostB
+  - source: hostB
+    recipient: hostB3
+    rate: mu*hostB
+  - source: hostC
+    recipient: hostC1
+    rate: mu*hostC
+  - source: hostC
+    recipient: hostC2
+    rate: mu*hostC
+  - source: hostC
+    recipient: hostC3
+    rate: mu*hostC
+  # 
+  - source: hostA
+    recipient: hostB
+    rate: mu*hostA
+  - source: hostA
+    recipient: hostC
+    rate: mu*hostA
+  #
+  - source: hostB3
+    recipient: human 
+    rate: mu*hostB3
+      #    rate: "t>70. ? mu*hostB3 : 0."
+
+
+# sample:
+#   - deme: hostA1
+#     time: rand( Normal(60.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostA2
+#     time: rand( Normal(65.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostA3
+#     time: rand( Normal(75.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostB1
+#     time: rand( Normal(75.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostB2
+#     time: rand( Normal(70.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostB3
+#     time: rand( Normal(70.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostC1
+#     time: rand( Normal(65.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostC2
+#     time: rand( Normal(75.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: hostC3
+#     time: rand( Normal(60.0, 3.),max(1,rand(Poisson(3))))
+#   - deme: human
+#     time: 80.0
+
+
+
+time:
+  initial: 0.
+  final: 81.0
+
+
+parameters:
+  - name: KA
+    value: 1e7
+  - name: KA1
+    value: 1e5
+  - name: KA2
+    value: 1e4
+  - name: KA3
+    value: 1e3
+  - name: KB
+    value: 1e6
+  - name: KB1
+    value: 1e4
+  - name: KB2
+    value: 1e4
+  - name: KB3
+    value: 1e3
+  - name: KC
+    value: 1e5
+  - name: KC1
+    value: 1e3
+  - name: KC2
+    value: 1e3
+  - name: KC3
+    value: 1e2
+  - name: b 
+    value: 1.25*52
+  - name: mu 
+    value: 1/20.
+  - name: gamma
+    value: 52.0
+
+dynamic_variables:
+  - name: hostA
+    initial_value: 1.0
+  - name: hostA1
+    initial_value: 0.
+  - name: hostA2
+    initial_value: 0.
+  - name: hostA3
+    initial_value: 0.
+  - name: hostB
+    initial_value: 0.
+  - name: hostB1
+    initial_value: 0.
+  - name: hostB2
+    initial_value: 0.
+  - name: hostB3
+    initial_value: 0.
+  - name: hostC
+    initial_value: 0.
+  - name: hostC1
+    initial_value: 0.
+  - name: hostC2
+    initial_value: 0.
+  - name: hostC3
+    initial_value: 0.
+  - name: human 
+    initial_value: 0. 

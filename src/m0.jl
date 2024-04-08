@@ -41,10 +41,10 @@ mutable struct ModelFGY
 	nondemes::Union{Nothing,Array{String}}
 	numberdemes::Int
 	numbernondemes::Int 
-	initial::Dict{String,Float64}
+	initial::Dict{String,Number}
 	t0::Float64
 	tfin::Float64
-	parameters::Dict{String,Float64}
+	parameters::Dict{String,Number}
 	helperexprs::Array{Expr}
 end
 function Base.show( io::IO, x::ModelFGY)
@@ -144,11 +144,10 @@ function ModelFGY(conffn::String)
 
 	if "helpers" ∈ keys(conf)
 		for d in conf["helpers"]
-			@assert d["value"] isa String
+			@assert d["definition"] isa String
 		end
 	end
-	helpers = "helpers" ∈ keys(conf) ? [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ] : []  
-	# helperexprs = [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ]
+	helperexprs = "helpers" ∈ keys(conf) ? [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ] : []  
 
 	ModelFGY( 
 		modelname = modelname
