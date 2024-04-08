@@ -112,6 +112,8 @@ function ModelFGY(conffn::String)
 		    , RXN_MIG
 		    , Meta.parse(b["rate"]))
 	  , conf["migrations"] )
+	# TODO  migrations should be optional
+	# deaths should be optional ( but maybe raise warnings if missing) 
 	deathrxns = map( b -> Reaction(b["deme"], RXN_DEATH, Meta.parse(b["rate"]) )
 	  , conf["deaths"] )
 	
@@ -137,9 +139,16 @@ function ModelFGY(conffn::String)
 	t0 = float( conf[ "time"]["initial"] )
 	tfin = float( conf[ "time"]["final"] )
 	
-	parmdict = [ (d["name"],d["value"]) for d in conf["parameters"] ] |> Dict
+	parmdict = [ (d["name"],d["value"]) for d in conf["parameters"] if d["value"] isa Number ] |> Dict
+	parmdict = merge( parmdict, [ (d["name"], eval(Meta.parse(d["value"]))) for d in conf["parameters"] if d["value"] isa String ] |> Dict )
 
-	helperexprs = [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ]
+	if "helpers" ∈ keys(conf)
+		for d in conf["helpers"]
+			@assert d["value"] isa String
+		end
+	end
+	helpers = "helpers" ∈ keys(conf) ? [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ] : []  
+	# helperexprs = [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ]
 
 	ModelFGY( 
 		modelname = modelname
