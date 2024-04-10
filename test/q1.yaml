@@ -41,7 +41,7 @@ births:
     rate: b*(hostC3)*(1-hostC3/KC3)
   - source: human
     recipient: human 
-    rate: 2b*human * (1-human/Khuman)
+    rate: bhuman*human * (1-human/Khuman)
 
 deaths:
   - deme: hostA
@@ -113,8 +113,8 @@ migrations:
   #
   - source: hostB3
     recipient: human 
-    rate: mu*hostB3
-      #    rate: "t>70. ? mu*hostB3 : 0."
+    # rate: mu*hostB3
+    rate: "t>80.60 ? mu*hostB3 : 0."
 
 
 # sample:
@@ -174,7 +174,9 @@ parameters:
   - name: Khuman
     value: 1e7
   - name: b 
-    value: 1.25*52
+    value: 1.05*52
+  - name: bhuman
+    value: 1.5*52
   - name: mu 
     value: 1/20.
   - name: gamma

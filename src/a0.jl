@@ -12,7 +12,10 @@ using Random
 struct SampleConfiguration 
 	sconf::Array{Tuple{Union{Nothing,String}, Float64}}
 end 
-function SampleConfiguration( confstr::String )
+function SampleConfiguration( conffn::String )
+	SampleConfiguration( confstr = read( conffn, String ) )
+end
+function SampleConfiguration(; confstr::String )
 	# conf = YAML.load_file( conffn )
 	conf = YAML.load( confstr )
 	samps = conf["sample"] 

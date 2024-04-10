@@ -103,7 +103,7 @@ sample:
 		true
 	end
 	@test begin 
-		SampleConfiguration( yamltest_sampling)
+		SampleConfiguration( confstr = yamltest_sampling )
 		true 
 	end
 end
