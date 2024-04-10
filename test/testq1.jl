@@ -8,4 +8,4 @@ m = ModelFGY( "q1.yaml" )
 o = solveodes( m )
 plot( o )
 
-
+s = SampleConfiguration( "q1.yaml" )

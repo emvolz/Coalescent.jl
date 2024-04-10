@@ -2,6 +2,7 @@ module Coalescent
 
 export SimTree, toRphylo, tonewick
 export ModelFGY, solveodes
+export SampleConfiguration
 
 using YAML 
 using CSV
