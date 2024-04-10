@@ -97,6 +97,13 @@ end
 	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs )
 end
 
+function SimTree( model::ModelFGY, sample::SampleConfiguration )
+	_sim_markov( model
+	  , [ x[2] for x in s.sconf ]
+	  , [ x[1] for x in s.sconf ]
+	)
+end
+
 function _sim_markov( model::ModelFGY
 		     , sampletimes::Array{Float64}
 		     , samplestates::Array{String}
