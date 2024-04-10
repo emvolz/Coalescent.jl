@@ -133,9 +133,9 @@ User-specified model
 	# interpolators 
 	_fnmsolu(i) = [ x[i] for x in msol.u ]
 	interpdict = Dict( zip( 
-		model.demes ∪ model.nondemes # columns of msol.u are in this order
+		vcat( model.demes , model.nondemes ) # columns of msol.u are in this order
 		, [ linear_interpolation( reverse(mst.-msol.t), reverse(_fnmsolu(i)) )
-			for (i,k) in enumerate( model.demes ∪ model.nondemes ) ]
+			for (i,k) in enumerate( vcat( model.demes , model.nondemes ) ) ]
 	))
 
 	# sampadds = 0 
@@ -163,7 +163,7 @@ User-specified model
 	end
 	ixsampleheight += 1 
 	
-	assexprs = [ :( $(Symbol(v)) = interpdict[$v](t)) for (i,v) in enumerate( model.demes ∪ model.nondemes ) ]
+	assexprs = [ :( $(Symbol(v)) = interpdict[$v](t)) for (i,v) in enumerate( vcat(model.demes, model.nondemes) ) ]
 	assexpr = Expr( :block, assexprs... )
 	
 	paex =  Expr( :block, [ ( :($(Symbol(k)) = $v) ) for (k,v) in model.parameters ]... )

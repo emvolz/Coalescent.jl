@@ -176,12 +176,14 @@ function _derive_deme_ode( deme::String, mod::ModelFGY )
 end
 
 function solveodes(model::ModelFGY)
-	odees = map( d ->  _derive_deme_ode(d,model), model.demes ) ∪ 
-		map( r -> r.expr, model.nondemerxn )
+	odees = vcat( 
+		map( d ->  _derive_deme_ode(d,model), model.demes ) 
+		, map( r -> r.expr, model.nondemerxn )
+		)
 	odeexprs = [ :(du[$i] = $ode) for (i,ode) in enumerate(odees)]
 	odeexpr = Expr(:block, odeexprs... )
 
-	assexprs = [ :( $(Symbol(deme)) = u[$(i)]) for (i,deme) in enumerate( model.demes ∪ model.nondemes ) ]
+	assexprs = [ :( $(Symbol(deme)) = u[$(i)]) for (i,deme) in enumerate( vcat(model.demes,model.nondemes) ) ]
 	assexpr = Expr( :block, assexprs... )
 
 	helperexpr = Expr(:block, model.helperexprs... )
@@ -201,7 +203,7 @@ function solveodes(model::ModelFGY)
 		end
 	end )
 	
-	initial_cond = [ model.initial[k] for k in model.demes ∪ model.nondemes ]
+	initial_cond = [ model.initial[k] for k in vcat(model.demes, model.nondemes) ]
 	trange = ( model.t0, model.tfin )
 	
 	prmod = ODEProblem( mododes! 

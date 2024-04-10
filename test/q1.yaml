@@ -41,7 +41,7 @@ births:
     rate: b*(hostC3)*(1-hostC3/KC3)
   - source: human
     recipient: human 
-    rate: 2b*human
+    rate: 2b*human * (1-human/Khuman)
 
 deaths:
   - deme: hostA
@@ -171,6 +171,8 @@ parameters:
     value: 1e3
   - name: KC3
     value: 1e2
+  - name: Khuman
+    value: 1e7
   - name: b 
     value: 1.25*52
   - name: mu 
