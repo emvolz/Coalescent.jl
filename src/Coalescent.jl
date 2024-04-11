@@ -31,12 +31,28 @@ const ALGO_MARKOV = "markov"
 const ALGO_STATIONARY = "stationary" 
 
 
-include("p0.jl")
 include("m0.jl")
-include("s0.jl")
 include("a0.jl")
+include("p0.jl")
+include("s0.jl")
 
 end;
 
 
+#= 
+using .Coalescent
+using YAML 
+using Test
+using Plots
+using Debugger 
 
+conf = YAML.load_file("../test/q1.yaml")
+m = ModelFGY( "../test/q1.yaml" )
+o = solveodes( m )
+plot( o )
+
+s = SampleConfiguration( "../test/q1.yaml" )
+
+# @run t = SimTree( m, s )
+t = SimTree( m, s )
+=#

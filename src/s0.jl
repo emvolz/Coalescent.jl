@@ -1,4 +1,4 @@
-using Coalescent
+using .Coalescent
 using YAML 
 using DataFrames
 using OrdinaryDiffEq
@@ -10,6 +10,7 @@ using Interpolations
 using Plots
 using StatsBase
 using Debugger
+import MacroTools
 
 function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 	ix = sortperm( [ e.height for e in events ] )
@@ -99,8 +100,8 @@ end
 
 function SimTree( model::ModelFGY, sample::SampleConfiguration )
 	_sim_markov( model
-	  , [ x[2] for x in s.sconf ]
-	  , [ x[1] for x in s.sconf ]
+	  , [ x[2] for x in sample.sconf ]
+	  , [ x[1] for x in sample.sconf ]
 	)
 end
 
@@ -119,9 +120,12 @@ User-specified model
 	# @assert tmrcaguess > 0. 
 	# @assert diff( collect( extrema( sampletimes)))[1] < tmrcaguess 
 	@assert length( sampletimes ) == length( samplestates )
-	sort!(sampletimes)
+	
+	# sort!(sampletimes)
 	mst = maximum( sampletimes )
-	sampleheights = reverse(  mst .- sampletimes ) 
+	ix = sortperm( sampletimes, rev = true )
+	sampleheights = mst .- sampletimes[ix]  
+	samplestates = samplestates[ix] 
 	# samplesadded = fill( false, n )
 	
 	ushs = unique( sampleheights ) |> sort!
@@ -177,41 +181,54 @@ User-specified model
 	helperexpr = Expr( :block, model.helperexprs... )
 	Aex = Expr( :block, [ ( :($(Symbol("A_"*k)) = A[$k]) ) for k in keys(A)]... )
 
+	function _sanitize_time_variable( expr )
+		#= 
+		if time (t) appears in expr, replace with (mst-t) for coalescent equations
+				example input:
+				:(if t > 80.6
+					mu * hostB3
+				else
+					0.0
+				end)
+		=# 
+		MacroTools.postwalk( expr ) do x 
+			x == :t ? :(mst-t) : x 
+		end
+	end
 	function _corateex( rxn )
 		@assert rxn.type == RXN_BIRTH
 		@assert !isnothing( rxn.recipient )
 		src = rxn.source 
 		rec = rxn.recipient
 
-		Yₛ = :( max(0.0, $(Symbol(src))))
-		Yᵣ = :( max(0.0, $(Symbol(rec))))
 		Aₛ = Symbol("A_"*src)
 		Aᵣ = Symbol("A_"*rec)
+		Yₛ = :( max( $Aₛ,   $(Symbol(src))))
+		Yᵣ = :( max( $Aᵣ,   $(Symbol(rec))))
 
 		if src == rec 
-			aex = :( $Aₛ * ($Aᵣ-1.0) / ($Yₛ * $Yᵣ) )
+			aex = :( $Aₛ * max(0.0,$Aᵣ-1.0) / ($Yₛ * $Yᵣ) )
 		else
 			aex = :( $Aₛ * $Aᵣ / ($Yₛ * $Yᵣ) )
 		end
-		Expr( :call, :*, aex,  rxn.expr )
+		Expr( :call, :*, aex,  _sanitize_time_variable( rxn.expr ) )
 	end
 	function _birthmigrateex( rxn )
 		# forward time transmission s -> r, reverse time migration r -> s
 		@assert rxn.type == RXN_BIRTH
 		@assert !isnothing( rxn.recipient )
-		@assert rxn.source != rxn.recipient
 		src = rxn.source 
 		rec = rxn.recipient
 
-		Yₛ = :( max( 0.0,  $(Symbol(src))))
-		Yᵣ = :( max(0.0, $(Symbol(rec))))
 		Aₛ = Symbol("A_"*src)
 		Aᵣ = Symbol("A_"*rec)
+		Yₛ = :( max( $Aₛ,   $(Symbol(src))))
+		Yᵣ = :( max( $Aᵣ,   $(Symbol(rec))))
 
 		pex = :( clamp( ($Yₛ - $Aₛ) / $Yₛ , 0., 1. ) )
 		aex = Expr( :call, :*, :( $Aᵣ / $Yᵣ ), pex )
 
-		Expr( :call, :*, aex,  rxn.expr )
+		Expr( :call, :*, aex,  _sanitize_time_variable( rxn.expr )  )
 	end
 	function _migrateex( rxn )
 		# reverse time migration r -> s
@@ -225,22 +242,36 @@ User-specified model
 		Aᵣ = Symbol("A_"*rec)
 		aex = :( $Aᵣ / $Yᵣ ) 
 		
-		Expr( :call, :*, aex,  rxn.expr )
+		Expr( :call, :*, aex,  _sanitize_time_variable( rxn.expr ) )
 	end
 
+	birthmigrxns = [ r for r in model.birthrxn if r.source != r.recipient ]
 	coexprs = map( r -> _corateex(r), model.birthrxn )
-	birthmigexprs = map( r -> _birthmigrateex(r), model.birthrxn )
+	birthmigexprs = map( r -> _birthmigrateex(r), birthmigrxns )
 	migexprs = map( r -> _migrateex(r), model.migrationrxn )
 	eventexprs = vcat( coexprs , birthmigexprs , migexprs )
 	eventtypes = vcat( fill(COALESCENT,length(coexprs)) 
 		, fill( MIGRATION, length(birthmigexprs)) 
 		, fill( MIGRATION, length(migexprs))
 	)
-	eventrxns = vcat( model.birthrxn ,  model.birthrxn ,  model.migrationrxn )
+	eventrxns = vcat( model.birthrxn ,  birthmigrxsn ,  model.migrationrxn )
 	nevents = length(eventexprs)
 	eventrates = fill( 0.0, nevents)
 	eventexprs1 = [ :(eventrates[$i] = $ex) for (i,ex) in enumerate(eventexprs) ]
 	eventexprblock = Expr(:block, eventexprs1... )
+
+	# function fneventrates!(eventrates, t, A, interpdict) 
+	# 	eval( quote
+	# 		$Aex 
+	# 		$assexpr 
+	# 		$paex
+	# 		$helperexpr
+	# 		$eventexprblock
+	# 		nothing
+	# 	end )
+	# end 
+	
+
 	eval( quote
 	function fneventrates!(eventrates, t, A, interpdict) 
 		$Aex 
@@ -251,9 +282,10 @@ User-specified model
 		nothing
 	end
 	end )
-
+	
 	function coodes!(du, u, p, t)
-		fneventrates!(eventrates, t, A, interpdict) # A, interpdict 
+		# fneventrates!(eventrates, t, A, interpdict) # A, interpdict 
+		Base.invokelatest( fneventrates!, eventrates, t, A, interpdict )
 		du[1] = max(0., sum(eventrates) ); 
 	end
 
@@ -298,7 +330,8 @@ User-specified model
 		exp(-u[1]) - cou # note: not integrator.u[1]
 	end
 	function eventaffect!(integrator)
-		fneventrates!(eventrates, integrator.t, A, interpdict) # A, interpdict 
+		# fneventrates!(eventrates, integrator.t, A, interpdict) # A, interpdict 
+		Base.invokelatest( fneventrates!, eventrates, integrator.t, A, interpdict )
 		we = sample( Weights(eventrates) )
 		rxntype = eventtypes[ we ]
 		rxn = eventrxns[we]
@@ -340,10 +373,11 @@ User-specified model
 	s = solve( pr, integ 
 	   , callback = cbs, tstops = ushs[ ushs .> 0. ] )
 	
-# for e in events 
-# 		println( e  )
-#end
-#
+for e in events 
+		println( e  )
+end
+@bp
+
 	SimTree( events, model )
 end
 

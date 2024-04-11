@@ -2,7 +2,7 @@
 Structured FGY model 
 =#
 
-using Coalescent
+# using .Coalescent
 using Debugger 
 using YAML 
 using DataFrames

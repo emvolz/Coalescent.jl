@@ -9,3 +9,5 @@ o = solveodes( m )
 plot( o )
 
 s = SampleConfiguration( "q1.yaml" )
+
+t = SimTree( m, s )
