@@ -67,8 +67,12 @@ end
 			end
 			u = extant[e.source][iu]
 			v = extant[e.sink][iv] 
-			deleteat!( extant[e.source], iu )
-			deleteat!( extant[e.sink], iv )
+			if e.source == e.sink 
+				deleteat!( extant[e.source], sort!([iu,iv]) )
+			else 
+				deleteat!( extant[e.source], iu )
+				deleteat!( extant[e.sink], iv )
+			end
 			push!(extant[e.source], a )
 
 			A-=1
@@ -139,7 +143,13 @@ User-specified model
 
 	# solve model 
 	msol = solveodes( model )
-	@assert msol.t[end] >= maximum(sampletimes)
+if  msol.t[end] < mst 
+println("	@assert (msol.t[end] >= mst) || (msol.t[end] ≈ mst) ")
+println( msol.t )
+println( mst )
+@bp
+end 
+	@assert (msol.t[end] >= mst) || (msol.t[end] ≈ mst) 
 	
 	# interpolators 
 	_fnmsolu(i) = [ x[i] for x in msol.u ]
@@ -177,7 +187,9 @@ User-specified model
 	assexprs = [ :( $(Symbol(v)) = interpdict[$v](t)) for (i,v) in enumerate( vcat(model.demes, model.nondemes) ) ]
 	assexpr = Expr( :block, assexprs... )
 	
-	paex =  Expr( :block, [ ( :($(Symbol(k)) = $v) ) for (k,v) in model.parameters ]... )
+	mparameters = model.parameters
+	mparameters["mst"] = mst # NOTE copying here so the variable is accessible inside ODE expressions 
+	paex =  Expr( :block, [ ( :($(Symbol(k)) = $v) ) for (k,v) in mparameters]... )
 	helperexpr = Expr( :block, model.helperexprs... )
 	Aex = Expr( :block, [ ( :($(Symbol("A_"*k)) = A[$k]) ) for k in keys(A)]... )
 
@@ -254,7 +266,7 @@ User-specified model
 		, fill( MIGRATION, length(birthmigexprs)) 
 		, fill( MIGRATION, length(migexprs))
 	)
-	eventrxns = vcat( model.birthrxn ,  birthmigrxsn ,  model.migrationrxn )
+	eventrxns = vcat( model.birthrxn ,  birthmigrxns,  model.migrationrxn )
 	nevents = length(eventexprs)
 	eventrates = fill( 0.0, nevents)
 	eventexprs1 = [ :(eventrates[$i] = $ex) for (i,ex) in enumerate(eventexprs) ]
@@ -286,6 +298,10 @@ User-specified model
 	function coodes!(du, u, p, t)
 		# fneventrates!(eventrates, t, A, interpdict) # A, interpdict 
 		Base.invokelatest( fneventrates!, eventrates, t, A, interpdict )
+		eventrates[isnan.(eventrates)] .= 0.0 
+# println("~~~")
+# println( A)
+# println( [t, eventrates...] )
 		du[1] = max(0., sum(eventrates) ); 
 	end
 
@@ -332,6 +348,7 @@ User-specified model
 	function eventaffect!(integrator)
 		# fneventrates!(eventrates, integrator.t, A, interpdict) # A, interpdict 
 		Base.invokelatest( fneventrates!, eventrates, integrator.t, A, interpdict )
+		eventrates[isnan.(eventrates)] .= 0.0 
 		we = sample( Weights(eventrates) )
 		rxntype = eventtypes[ we ]
 		rxn = eventrxns[we]
@@ -373,10 +390,8 @@ User-specified model
 	s = solve( pr, integ 
 	   , callback = cbs, tstops = ushs[ ushs .> 0. ] )
 	
-for e in events 
-		println( e  )
-end
-@bp
+# @bp
+# DataFrame( events )|>print
 
 	SimTree( events, model )
 end

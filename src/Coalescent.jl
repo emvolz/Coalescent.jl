@@ -39,7 +39,6 @@ include("s0.jl")
 end;
 
 
-#= 
 using .Coalescent
 using YAML 
 using Test
@@ -55,4 +54,3 @@ s = SampleConfiguration( "../test/q1.yaml" )
 
 # @run t = SimTree( m, s )
 t = SimTree( m, s )
-=#
