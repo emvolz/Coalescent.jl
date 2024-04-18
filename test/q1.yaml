@@ -148,29 +148,29 @@ time:
 
 parameters:
   - name: KA
-    value: 1e7
+    value: 1e5
   - name: KA1
-    value: 1e5
+    value: 1e4
   - name: KA2
-    value: 1e4
+    value: 1e3
   - name: KA3
-    value: 1e3
-  - name: KB
-    value: 1e6
-  - name: KB1
-    value: 1e4
-  - name: KB2
-    value: 1e4
-  - name: KB3
-    value: 1e3
-  - name: KC
-    value: 1e5
-  - name: KC1
-    value: 1e3
-  - name: KC2
-    value: 1e3
-  - name: KC3
     value: 1e2
+  - name: KB
+    value: 1e4
+  - name: KB1
+    value: 1e3
+  - name: KB2
+    value: 1e3
+  - name: KB3
+    value: 1e2
+  - name: KC
+    value: 1e4
+  - name: KC1
+    value: 1e2
+  - name: KC2
+    value: 1e2
+  - name: KC3
+    value: 1e1
   - name: Khuman
     value: 1e7
   - name: b 
@@ -178,7 +178,7 @@ parameters:
   - name: bhuman
     value: 1.5*52
   - name: mu 
-    value: 1/20.
+    value: 1/100.0
   - name: gamma
     value: 52.0
 
