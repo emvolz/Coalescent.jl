@@ -1,4 +1,3 @@
-using .Coalescent
 using YAML 
 using DataFrames
 using OrdinaryDiffEq
@@ -143,13 +142,10 @@ User-specified model
 
 	# solve model 
 	msol = solveodes( model )
-if  msol.t[end] < mst 
-println("	@assert (msol.t[end] >= mst) || (msol.t[end] ≈ mst) ")
-println( msol.t )
-println( mst )
-@bp
-end 
-	@assert (msol.t[end] >= mst) || (msol.t[end] ≈ mst) 
+
+	((msol.t[end] >= mst) || (msol.t[end] ≈ mst)) ||  throw(error( "Some sample times exceed final simulation time point." ))
+
+
 	
 	# interpolators 
 	_fnmsolu(i) = [ x[i] for x in msol.u ]
