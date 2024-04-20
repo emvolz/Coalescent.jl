@@ -21,7 +21,7 @@ end
 
 
 
-struct SimTree
+mutable struct SimTree
 	parent::Array{Union{Nothing,Int}}
 	child::Array{Union{Nothing,Int}}
 	n::Int
