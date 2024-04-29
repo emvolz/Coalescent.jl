@@ -169,23 +169,6 @@ User-specified model
 	ndemes = length( model.demes )
 	A = Dict( zip( model.demes, fill(0., ndemes ) ))
 
-	# # initialise A and add initial samples 
-	# for (ideme,deme) in enumerate( model.demes )
-	# 	shsdict = deme2shsdict[ideme] 
-	# 	if currentsampleheight in keys(shsdict)
-	# 		newsamps = shsdict[currentsampleheight]
-	# 		A[deme] += newsamps
-	# 		append!(events, 
-	# 				fill( Event(SAMPLE
-	# 		  	  	  , currentsampleheight
-	# 		  	  	  , deme 
-	# 		  	  	  , deme 
-	# 				), newsamps )
-	# 			)
-	# 	end
-	# end
-	# ixsampleheight += 1 
-	 
 	assexprs = [ :( $(Symbol(v)) = interpdict[$v](t)) for (i,v) in enumerate( vcat(model.demes, model.nondemes) ) ]
 	assexpr = Expr( :block, assexprs... )
 	
@@ -284,10 +267,6 @@ User-specified model
 		$paex
 		$helperexpr
 		$eventexprblock
-if t<.75
-println( [t, eventrates...] )
-println( values(A))
-end 
 		eventrates[ isnan.(eventrates) ] .= 0.0  
 		nothing
 	end
@@ -296,7 +275,6 @@ end
 	function coodes!(du, u, p, t)
 		# fneventrates!(eventrates, t, A, interpdict) # A, interpdict 
 		Base.invokelatest( fneventrates!, eventrates, t, A, interpdict )
-		# eventrates[isnan.(eventrates)] .= 0.0 
 		du[1] = max(0., sum(eventrates) ); 
 	end
 
@@ -324,13 +302,11 @@ end
 	sampcb = DiscreteCallback( sampcondition, sampaffect! )
 	
 	function eventcondition(u,t,integrator)::Real
-		#u[1] - cou
 		exp(-u[1]) - cou # note: not integrator.u[1]
 	end
 	function eventaffect!(integrator)
 		# fneventrates!(eventrates, integrator.t, A, interpdict) # A, interpdict 
 		Base.invokelatest( fneventrates!, eventrates, integrator.t, A, interpdict )
-		# eventrates[isnan.(eventrates)] .= 0.0 
 		we = sample( Weights(eventrates) )
 		rxntype = eventtypes[ we ]
 		rxn = eventrxns[we]
@@ -350,10 +326,6 @@ end
 			  , rxn.recipient )
 			)
 		end
-# println("############")
-# 		println(integrator.t)
-# println( DataFrame( hcat( eventtypes, eventrates ), :auto ))
-# println( DataFrame( A ) )
 		integrator.u[1] = 0. 
 		cou = rand()
 	end
@@ -364,7 +336,6 @@ end
 	# integ = Rosenbrock23()
 	# integ = AutoTsit5(Rosenbrock23())
 	# integ = Tsit5()
-	# integ = odemethod() # RadauIIA5() 
 	integ = eval( odemethod )
 	sampaffect!( integ ) #initial sample 
 	pr = ODEProblem( coodes!
@@ -374,9 +345,7 @@ end
 	s = solve( pr, integ 
 	, callback = cbs, tstops = ushs[ushs.>0.0]  )
 	
-# @bp
-DataFrame( events )|>print
-
+# TODO insert polytomy events if not coalesced
 	SimTree( events, model )
 end
 
