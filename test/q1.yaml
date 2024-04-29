@@ -41,7 +41,7 @@ births:
     rate: b*(hostC3)*(1-hostC3/KC3)
   - source: human
     recipient: human 
-    rate: bhuman*human * (1-human/Khuman)
+    rate: "t > 80.6 ? bhuman*human * (1-human/Khuman) : 0.0"
 
 deaths:
   - deme: hostA
@@ -114,7 +114,7 @@ migrations:
   - source: hostB3
     recipient: human 
     # rate: mu*hostB3
-    rate: "t>80.60 ? mu*hostB3 : 0."
+    rate: "t>80.60 ? mu*hostB3 : mu*hostB3/100.0"
 
 
 sample:
