@@ -119,25 +119,25 @@ migrations:
 
 sample:
   - deme: hostA1
-    time: rand( Normal(60.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(60.0, 3.),max(1,rand(Poisson(3)))) )
   - deme: hostA2
-    time: rand( Normal(65.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(65.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostA3
-    time: rand( Normal(75.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(75.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostB1
-    time: rand( Normal(75.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(75.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostB2
-    time: rand( Normal(70.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(70.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostB3
-    time: rand( Normal(74.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(74.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostB3
-    time: "[min(80.9,x) for x in rand(Normal(79.0, 3.),max(2,rand(Poisson(3))))]"
+    time: min.(80.9, rand(Normal(79.0, 3.),max(2,rand(Poisson(3)))))
   - deme: hostC1
-    time: rand( Normal(65.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(65.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostC2
-    time: rand( Normal(75.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(75.0, 3.),max(1,rand(Poisson(3)))))
   - deme: hostC3
-    time: rand( Normal(60.0, 3.),max(1,rand(Poisson(3))))
+    time: min.(80.9, rand( Normal(60.0, 3.),max(1,rand(Poisson(3)))))
   - deme: human
     time: 81.0
 

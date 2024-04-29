@@ -1,15 +1,24 @@
-using Coalescent
+# using Coalescent
 using YAML 
 using Test
 using Plots
 
-conf = YAML.load_file("q1.yaml")
-m = ModelFGY( "q1.yaml" )
+using Revise
+using Coalescent
+
+# include("../src/Coalescent.jl")
+# using .Coalescent
+# include("../src/s0.jl")
+
+conf = YAML.load_file("test/q1.yaml")
+m = ModelFGY( "test/q1.yaml" )
 o = solveodes( m )
 plot( o )
 
-s = SampleConfiguration( "q1.yaml" )
+s = SampleConfiguration( "test/q1.yaml" )
 
+using Debugger
+# @run t = SimTree( m, s )
 t = SimTree( m, s )
 
 #= 
