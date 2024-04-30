@@ -3,7 +3,6 @@ using Test
 using Plots
 using OrdinaryDiffEq
 
-# TODO enable provision of single symbol for 'rate' 
 conf = YAML.load_file( "test/musseco.yaml")
 
 using Revise
