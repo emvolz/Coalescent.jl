@@ -172,10 +172,10 @@ User-specified model
 	assexprs = [ :( $(Symbol(v)) = interpdict[$v](t)) for (i,v) in enumerate( vcat(model.demes, model.nondemes) ) ]
 	assexpr = Expr( :block, assexprs... )
 	
-	mparameters = model.parameters
+	mparameters = isnothing( model.parameters ) ? Dict{String,Float64}() : model.parameters
 	mparameters["mst"] = mst # NOTE copying here so the variable is accessible inside ODE expressions 
 	paex =  Expr( :block, [ ( :($(Symbol(k)) = $v) ) for (k,v) in mparameters]... )
-	helperexpr = Expr( :block, model.helperexprs... )
+	helperexpr = isnothing(model.helperexprs) ? :() :  Expr( :block, model.helperexprs... )
 	Aex = Expr( :block, [ ( :($(Symbol("A_"*k)) = A[$k]) ) for k in keys(A)]... )
 
 	function _sanitize_time_variable( expr )

@@ -19,16 +19,19 @@ mutable struct Reaction
 	recipient::Union{Nothing,String}
 	type::Int
 	expr::Expr 
-	function Reaction(s::String,r::Union{Nothing,String},t::Int,e::Expr)
+	function Reaction(s::String,r::Union{Nothing,String},t::Int,e::Union{Symbol,Expr})
 		@assert t in [ RXN_BIRTH, RXN_MIG, RXN_DEATH, RXN_DYNVAR ]
 		o = new()
-		o.source = s; o.recipient = r; o.type = t; o.expr = e
+		o.source = s; o.recipient = r; o.type = t; 
+		o.expr = typeof(e)===Symbol ? Expr(e) : e 
 		o
 	end
 end
-function Reaction( s::String, t::Int, e::Expr )
+function Reaction( s::String, t::Int, e::Union{Symbol,Expr} )
 	@assert t in [ RXN_DEATH, RXN_DYNVAR ]
-	Reaction( s, nothing, t,  e )
+	Reaction( s, nothing, t
+	,  typeof(e)===Symbol ? Expr(e) : e  
+	)
 end
 
 mutable struct ModelFGY
@@ -44,8 +47,8 @@ mutable struct ModelFGY
 	initial::Dict{String,Number}
 	t0::Float64
 	tfin::Float64
-	parameters::Dict{String,Number}
-	helperexprs::Array{Expr}
+	parameters::Union{Nothing,Dict{String,Number}}
+	helperexprs::Union{Nothing,Array{Expr}}
 end
 function Base.show( io::IO, x::ModelFGY)
 	print("""
@@ -79,7 +82,7 @@ function ModelFGY(;
 		, t0::Float64
 		, tfin::Float64
 		, parameters::Dict{String,Float64}
-		, helperexprs::Array{Expr}
+		, helperexprs::Union{Nothing,Array{Expr}}
 	)
 	ModelFGY(
  		 modelname
@@ -140,15 +143,17 @@ function ModelFGY(conffn::String)
 	tfin = float( conf[ "time"]["final"] )
 	
 	parmdict = [ (d["name"],d["value"]) for d in conf["parameters"] if d["value"] isa Number ] |> Dict
-	parmdict = merge( parmdict, [ (d["name"], eval(Meta.parse(d["value"]))) for d in conf["parameters"] if d["value"] isa String ] |> Dict )
+	strvalparms = [ (d["name"], eval(Meta.parse(d["value"]))) for d in conf["parameters"] if d["value"] isa String ]
+	if length( strvalparms ) > 0 
+		parmdict = merge( parmdict, strvalparms |> Dict )
+	end
 
 	if "helpers" ∈ keys(conf)
 		for d in conf["helpers"]
 			@assert d["definition"] isa String
 		end
 	end
-	helperexprs = "helpers" ∈ keys(conf) ? [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ] : []  
-
+	helperexprs = "helpers" ∈ keys(conf) ? [ :($(Symbol(d["name"])) = $(Meta.parse(d["definition"])) ) for d in conf[ "helpers" ] ] :  nothing 
 	ModelFGY( 
 		modelname = modelname
 		, birthrxn = brxns
@@ -186,7 +191,7 @@ function solveodes(model::ModelFGY; odemethod = Rosenbrock23 , res::Union{Missin
 	assexprs = [ :( $(Symbol(deme)) = u[$(i)]) for (i,deme) in enumerate( vcat(model.demes,model.nondemes) ) ]
 	assexpr = Expr( :block, assexprs... )
 
-	helperexpr = Expr(:block, model.helperexprs... )
+	helperexpr = isnothing(model.helperexprs) ? :() : Expr(:block, model.helperexprs... )
 	
 	# TODO move inside mododes to prevent name conflict 
 	paex =  [ ( :($(Symbol(k)) = $v) ) for (k,v) in model.parameters ]
@@ -212,6 +217,7 @@ function solveodes(model::ModelFGY; odemethod = Rosenbrock23 , res::Union{Missin
 	)
 	integ = odemethod() 
 	tstops = ismissing(res) ? [] : collect(range(model.t0, model.tfin, length=res))
+@bp 
 	smod = solve( prmod, integ; tstops = tstops )
 	smod 
 end
