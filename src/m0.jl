@@ -175,7 +175,7 @@ function _derive_deme_ode( deme::String, mod::ModelFGY )
 	Expr(:call, :-, p, n )
 end
 
-function solveodes(model::ModelFGY; odemethod = Rosenbrock23 , res::Union{Missing,Int64} = missing )
+function solveodes(model::ModelFGY; odemethod = :(Rosenbrock23()) , res::Union{Missing,Int64} = missing )
 	odees = vcat( 
 		map( d ->  _derive_deme_ode(d,model), model.demes ) 
 		, map( r -> r.expr, model.nondemerxn )
@@ -210,7 +210,7 @@ function solveodes(model::ModelFGY; odemethod = Rosenbrock23 , res::Union{Missin
 		, initial_cond 
 		, trange
 	)
-	integ = odemethod() 
+	integ = eval( odemethod )
 	tstops = ismissing(res) ? [] : collect(range(model.t0, model.tfin, length=res))
 	smod = solve( prmod, integ; tstops = tstops )
 	smod 
