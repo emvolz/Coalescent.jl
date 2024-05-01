@@ -1,0 +1,61 @@
+modelname: "MUSSECO"
+
+dynamic_variables:
+  - name: WT 
+    initial_value: 1.0 
+  - name: TFPV 
+    initial_value: 0. 
+  # - name: X
+  #   initial_value: 1e3 
+
+births:
+  - source: WT
+    recipient: WT
+    rate: β*WT*(1-WT/K)
+  - source: TFPV
+    recipient: TFPV 
+    rate: (1+s)*γ*TFPV
+  # - source: X
+  #   recipient: X
+  #   rate: 0*X
+
+deaths:
+  - deme: WT
+    rate: γ*WT
+  - deme: TFPV
+    rate: γ*TFPV
+  # - deme: X
+  #   rate: X*γ
+
+migrations:
+  - source: WT 
+    recipient: TFPV 
+    rate: μ * WT 
+
+sample:
+  - deme: WT 
+    size: 100
+    time: 20. 
+  - deme: TFPV 
+    size: 10
+    time: 20. 
+
+parameters:
+  - name: β
+    value: 2. 
+  - name: γ
+    value: 1.2
+  - name: K 
+    value: 1000.0  
+  - name: s 
+    value: -0.3 
+  - name: μ
+    value: 0.04
+
+helpers: 
+  - name: N 
+    definition: WT + TFPV 
+
+time: 
+  initial: 0. 
+  final: 20. 
