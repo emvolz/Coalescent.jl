@@ -24,6 +24,7 @@ function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 	))
 	
 	tiplabs = [ "t.$(e.source).$(i)" for (i,e) in enumerate(events) if e.type == SAMPLE ]
+	shs =  [ e.height for e in events if e.type == SAMPLE ]
 	nodes = range( 1, n + nNode ) |> collect 
 	
 	nedges = n + nNode - 1
@@ -99,7 +100,7 @@ end
 		end
 	end
 	
-	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs )
+	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs, shs  )
 end
 
 function SimTree( model::ModelFGY, sample::SampleConfiguration )
