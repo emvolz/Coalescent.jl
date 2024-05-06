@@ -110,24 +110,25 @@ function ModelFGY(conffn::String)
 		    , RXN_BIRTH
 		    , Meta.parse(b["rate"]))
 	  , conf["births"] )
-	migrxns = map( b -> Reaction(b["source"]
+	migrxns = "migrations" ∈ keys(conf) ? map( b -> Reaction(b["source"]
 		    , b["recipient"]
 		    , RXN_MIG
 		    , Meta.parse(b["rate"]))
-	  , conf["migrations"] )
+	  	    , conf["migrations"] ) : Array{Reaction}(undef, 0)
 	# TODO  migrations should be optional
 	# deaths should be optional ( but maybe raise warnings if missing) 
-	deathrxns = map( b -> Reaction(b["deme"], RXN_DEATH, Meta.parse(b["rate"]) )
-	  , conf["deaths"] )
+	deathrxns = "deaths" ∈ keys(conf) ?  map( b -> Reaction(b["deme"], RXN_DEATH, Meta.parse(b["rate"]) )
+		, conf["deaths"] ) : Array{Reaction}(undef, 0)	
 	
-	demes = union( [ rxn.source for rxn in brxns ]
+	demes = Array{String}(union( [ rxn.source for rxn in brxns ]
 		  , [ rxn.recipient for rxn in brxns ]
 	          , [ rxn.source for rxn in migrxns ]
 	          , [ rxn.recipient for rxn in migrxns ] 
 	          , [ rxn.source for rxn in deathrxns ]
-	)
+			  ))
 	#|> setdiff( nothing )
-	
+	# println( Array{String}(demes))	
+
 	numberdemes = length( demes )
 	
 	dvdict = Dict( zip( [x["name"] for x in conf["dynamic_variables"]], conf["dynamic_variables"] ) )
@@ -137,15 +138,24 @@ function ModelFGY(conffn::String)
 	
 	nondemes = [ x for x in setdiff( keys( initials ), demes ) ]
 	numbernondemes = length( nondemes )
-	nondemerxn = [ Reaction(k, RXN_DYNVAR, Meta.parse(dvdict[k]["ode"])) for k in nondemes]  
+	nondemerxn = Reaction[]
+	for k in nondemes
+		if "ode" ∉ keys( dvdict[k] )
+			@warn "Missing ODE definition for dynamic variable $k"
+			push!(nondemerxn, Reaction(k, RXN_DYNVAR, :(0+0)) )
+		else 
+			push!(nondemerxn, Reaction(k, RXN_DYNVAR, Meta.parse(dvdict[k]["ode"])) )
+		end
+	end
+	# nondemerxn = [ Reaction(k, RXN_DYNVAR, Meta.parse(dvdict[k]["ode"])) for k in nondemes]  
 
 	t0 = float( conf[ "time"]["initial"] )
 	tfin = float( conf[ "time"]["final"] )
 	
-	parmdict = [ (d["name"],d["value"]) for d in conf["parameters"] if d["value"] isa Number ] |> Dict
+	parmdict = [ (d["name"],d["value"]) for d in conf["parameters"] if d["value"] isa Number ] |> Dict{String,Float64}
 	strvalparms = [ (d["name"], eval(Meta.parse(d["value"]))) for d in conf["parameters"] if d["value"] isa String ]
 	if length( strvalparms ) > 0 
-		parmdict = merge( parmdict, strvalparms |> Dict )
+		parmdict = merge( parmdict, strvalparms |> Dict{String,Float64} )
 	end
 
 	if "helpers" ∈ keys(conf)
@@ -172,9 +182,13 @@ end
 
 function _derive_deme_ode( deme::String, mod::ModelFGY )
 	inbrxn = [ r.expr for r in mod.birthrxn  if r.recipient==deme ]
+	inbrxn = length( inbrxn ) == 0 ? [ :(0) ] : inbrxn 
 	inmigrxn = [ r.expr for r in mod.migrationrxn  if r.recipient==deme ]
+	inmigrxn = length( inmigrxn ) == 0 ? [ :(0) ] : inmigrxn 
 	outmigrxn = [ r.expr for r in mod.migrationrxn  if r.source==deme ]
+	outmigrxn = length( outmigrxn ) == 0 ? [ :(0) ] : outmigrxn 
 	deathrxn = [ r.expr for r in mod.deathrxn if r.source==deme ]
+	deathrxn = length( deathrxn ) == 0 ? [ :(0) ] : deathrxn 
 	p = Expr(:call,:+, inbrxn..., inmigrxn...) 
 	n = Expr(:call,:+, outmigrxn..., deathrxn...)
 	Expr(:call, :-, p, n )
@@ -200,6 +214,10 @@ function solveodes(model::ModelFGY; odemethod = :(Rosenbrock23()) , res::Union{M
 		eval(ex) 
 	end
 
+	println( "$assexpr")
+	println("$helperexpr")
+	println("$odeexpr")
+
 	eval( quote 
 		function mododes!( du, u, p, t )
 			$assexpr
@@ -217,7 +235,12 @@ function solveodes(model::ModelFGY; odemethod = :(Rosenbrock23()) , res::Union{M
 	)
 	integ = eval( odemethod )
 	tstops = ismissing(res) ? [] : collect(range(model.t0, model.tfin, length=res))
-@bp 
+# @bp 
+# du_ = [0., 0.] 
+# println(initial_cond)
+# println(tstops)
+# mododes!( du_, [1.,1.], (;), 0.0) |> println
+# println(du_)
 	smod = solve( prmod, integ; tstops = tstops )
 	smod 
 end
