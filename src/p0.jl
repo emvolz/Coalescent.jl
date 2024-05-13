@@ -21,7 +21,7 @@ end
 
 
 
-mutable struct SimTree
+@kwdef mutable struct SimTree
 	parent::Array{Union{Nothing,Int}}
 	child::Array{Union{Nothing,Int}}
 	n::Int
@@ -29,6 +29,7 @@ mutable struct SimTree
 	edgelength::Array{Union{Nothing,Float64}}
 	heights::Array{Union{Nothing,Float64}}
 	tiplabs::Array{Union{Nothing,String}}
+	shs::Array{Union{Nothing,Float64}} 
 end
 Base.show( io::IO, x::SimTree) = print("""
 Simulated coalescent tree with $(x.n) tips and $(x.nNode) internal nodes
@@ -98,7 +99,7 @@ function SimTree(events::Array{Event})::SimTree
 		end
 	end
 	
-	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs )
+	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs,  heights[1:n] )
 end
 
 function _sim_markov(Ne::Function
