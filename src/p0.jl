@@ -76,11 +76,7 @@ function SimTree(events::Array{Event})::SimTree
 			su += 1
 		elseif e.type == COALESCENT
 			heights[a] = e.height
-			try
-				iu,iv = sample( 1:length(extant), 2, replace=false )
-			catch
-				@bp
-			end
+			iu,iv = sample( 1:length(extant), 2, replace=false ) # as fast as using rand()*length|>floor|>+1|>Int 
 			u,v = extant[ [iu,iv] ]
 			deleteat!( extant, sort([iu,iv]) )
 			push!(extant, a )
@@ -194,6 +190,8 @@ User-specified Ne(t) function
 	tr
 
 end
+
+
 
 function SimTree(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64
 		 , p...
@@ -332,6 +330,24 @@ function SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p... ; algorithm=A
  	 ; algorithm
 	)
 end
+
+function SimTree( Ne::Float64, n::Int64)::SimTree 
+	@assert n > 1
+	@assert Ne > 0 
+	events = Array{Event}(undef, n+n-1)
+	for i in 1:n
+		events[i] = Event(SAMPLE, 0.0 )
+	end
+	inis = Array{Float64}(undef, n-1 )
+	for i in n:-1:2
+		inis[n-i+1] = rand( Exponential( 2Ne/ (i*(i-1))))
+	end
+	nhs = cumsum( inis )
+	for (i, h) in enumerate( nhs )
+		events[n+i] = Event( COALESCENT, h )
+	end 
+	SimTree( events )
+end 
 
 function toRphylo(stre)
 	edge = [stre.parent stre.child]
