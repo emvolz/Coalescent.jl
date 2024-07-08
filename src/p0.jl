@@ -8,7 +8,7 @@ using Interpolations
 using Plots
 using Debugger
 
-struct Event
+mutable struct Event
 	type::Int
 	height::Float64
 	source::Union{Nothing,String}

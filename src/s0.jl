@@ -13,11 +13,17 @@ import MacroTools
 using JumpProcesses
 
 function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
+	
 	ix = sortperm( [ e.height for e in events ] )
 	events = events[ ix ]
 	n = sum( [ e.type == SAMPLE for e in events ] )
-	# coes = [ e for e in events if e.type == COALESCENT ]
-	nNode = sum( [e.type == COALESCENT for e in events ] )
+	nNode = n - 1 
+	nCo = sum( [e.type == COALESCENT for e in events ] )
+	mrcaheight = events[end].height 
+	for i in 1:(nNode - nCo ) # add coalescent events if tree is not complete (single mrca)
+		push!( events, Event(COALESCENT, mrcaheight) )
+	end
+	
 	deme2n = Dict(zip(model.demes,
 		   [ sum(map(e -> e.type==SAMPLE && e.source==deme, events )) 
 			for deme in model.demes ]
@@ -27,6 +33,7 @@ function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 	shs =  [ e.height for e in events if e.type == SAMPLE ]
 	nodes = range( 1, n + nNode ) |> collect 
 	
+
 	nedges = n + nNode - 1
 	parent = Array{Union{Nothing,Int}}(nothing, nedges )
 	child = Array{Union{Nothing,Int}}(nothing, nedges )
@@ -54,11 +61,22 @@ function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 			su += 1
 		elseif e.type == COALESCENT
 			heights[a] = e.height
+
+			if isnothing( e.source) # random coalesce at mrcaheight to get binary tree 
+
+				# Adict = Dict( zip( model.demes,  map(x -> length(extant[x]), model.demes) ))
+				Avec =  map(x -> length(extant[x]), model.demes)
+				demeu = sample( model.demes, Weights(Avec), 1 )[1]
+				e.source = demeu 
+				Avec[ model.demes .== demeu] .-= 1 
+				# Adict[ demeu ] -= 1 
+				demev = sample( model.demes, Weights(Avec), 1 )[1]
+				e.sink = demev 
+				Avec[ model.demes .== demev] .-= 1 
+			end
+
 			e0 = extant[ e.source ]
 			e1 = extant[ e.sink ]
-if length(e1)==0
-				@bp
-end
 
 			iu = sample(1:length(e0))
 			if e.source == e.sink
@@ -74,6 +92,7 @@ end
 				deleteat!( extant[e.source], iu )
 				deleteat!( extant[e.sink], iv )
 			end
+
 			push!(extant[e.source], a )
 
 			A-=1
@@ -88,9 +107,6 @@ end
 			a -= 1
 		elseif e.type == MIGRATION
 			e1 = extant[ e.sink ]
-if length(e1)==0
-				@bp
-end
 			iv = sample(1:length(e1))
 			v = e1[iv] 
 			deleteat!( e1, iv )
