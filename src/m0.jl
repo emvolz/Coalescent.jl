@@ -214,10 +214,10 @@ function solveodes(model::ModelFGY; odemethod = :(Rosenbrock23()) , res::Union{M
 		eval(ex) 
 	end
 
-	println( "$assexpr")
+	#= println( "$assexpr")
 	println("$helperexpr")
 	println("$odeexpr")
-
+	=#
 	eval( quote 
 		function mododes!( du, u, p, t )
 			$assexpr
