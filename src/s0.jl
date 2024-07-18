@@ -137,10 +137,10 @@ function _sim_markov( model::ModelFGY
 		     ; odemethod = :(AutoTsit5(Rosenbrock23()))
 		     , ytol = 1e-6
 	)
-	print( """Simulating coalescent, sample size = $(length(sampletimes))
-Markovian coalescent algorithm
-User-specified model
-""" * string(model) ) #$(string(model))
+# 	print( """Simulating coalescent, sample size = $(length(sampletimes))
+# Markovian coalescent algorithm
+# User-specified model
+# """ * string(model) ) #$(string(model))
 	n = length( sampletimes )
 	@assert n > 1
 	# @assert tmrcaguess > 0. 
@@ -362,7 +362,6 @@ User-specified model
 	s = solve( pr, integ 
 	, callback = cbs, tstops = ushs[ushs.>0.0]  )
 	
-# TODO insert polytomy events if not coalesced
 	SimTree( events, model )
 end
 
