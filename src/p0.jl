@@ -30,6 +30,7 @@ end
 	heights::Array{Union{Nothing,Float64}}
 	tiplabs::Array{Union{Nothing,String}}
 	shs::Array{Union{Nothing,Float64}} 
+	descendants::Union{Nothing,BitMatrix}
 end
 Base.show( io::IO, x::SimTree) = print("""
 Simulated coalescent tree with $(x.n) tips and $(x.nNode) internal nodes

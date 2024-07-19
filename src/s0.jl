@@ -12,7 +12,7 @@ using Debugger
 import MacroTools
 using JumpProcesses
 
-function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
+function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = false)::SimTree
 	
 	ix = sortperm( [ e.height for e in events ] )
 	events = events[ ix ]
@@ -50,6 +50,8 @@ function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 
 	a = n + nNode # internal node counter, goes down 
 	su = 1 # tip counter, goes up 
+
+	desc = computedescendants ?  falses( nNode, n ) : nothing 
 	
 	iu = 0 
 	iv = 0
@@ -104,6 +106,18 @@ function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 			child[ie] = v 
 			edgelength[ie] = heights[a] - heights[v]
 			ie += 1 
+			if computedescendants
+				if u <= n 
+					desc[a-n,u] = true 
+				else 
+					desc[a-n,:] .|= desc[u-n,:] 
+				end
+				if v <= n 
+					desc[a-n,v] = true 
+				else 
+					desc[a-n,:] .|= desc[v-n,:] 
+				end
+			end
 			a -= 1
 		elseif e.type == MIGRATION
 			e1 = extant[ e.sink ]
@@ -116,13 +130,14 @@ function SimTree(events::Array{Event}, model::ModelFGY)::SimTree
 		end
 	end
 	
-	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs, shs  )
+	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs, shs, desc  )
 end
 
-function SimTree( model::ModelFGY, sample::SampleConfiguration )
+function SimTree( model::ModelFGY, sample::SampleConfiguration; computedescendants = false  )
 	_sim_markov( model
 	  , [ x[2] for x in sample.sconf ]
 	  , [ x[1] for x in sample.sconf ]
+	  , computedescendants 
 	)
 end
 
@@ -134,6 +149,7 @@ function _sim_markov( model::ModelFGY
 		     , samplestates::Array{String}
 		     #, tmrcaguess::Float64
 		     #, p... 
+		     , computedescendants::Bool 
 		     ; odemethod = :(AutoTsit5(Rosenbrock23()))
 		     , ytol = 1e-6
 	)
@@ -362,6 +378,6 @@ function _sim_markov( model::ModelFGY
 	s = solve( pr, integ 
 	, callback = cbs, tstops = ushs[ushs.>0.0]  )
 	
-	SimTree( events, model )
+	SimTree( events, model; computedescendants = computedescendants)
 end
 
