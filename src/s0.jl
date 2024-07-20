@@ -37,8 +37,10 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 	nedges = n + nNode - 1
 	parent = Array{Union{Nothing,Int}}(nothing, nedges )
 	child = Array{Union{Nothing,Int}}(nothing, nedges )
+	daughters = Vector{Tuple{Int, Int, Float64, Float64}}(undef, nNode  )
 	edgelength = Array{Union{Nothing,Float64}}(nothing, nedges )
 	heights = Array{Union{Nothing,Float64}}( nothing, n + nNode )
+	demes = Array{String}(undef, n + nNode )
 	
 	A = 0
 	ie = 1
@@ -60,12 +62,12 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 			A+=1 
 			heights[su] = e.height 
 			push!( extant[e.source], su )
+			demes[su] = e.source 
 			su += 1
 		elseif e.type == COALESCENT
 			heights[a] = e.height
 
 			if isnothing( e.source) # random coalesce at mrcaheight to get binary tree 
-
 				# Adict = Dict( zip( model.demes,  map(x -> length(extant[x]), model.demes) ))
 				Avec =  map(x -> length(extant[x]), model.demes)
 				demeu = sample( model.demes, Weights(Avec), 1 )[1]
@@ -96,6 +98,7 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 			end
 
 			push!(extant[e.source], a )
+			demes[a] = e.source 
 
 			A-=1
 			parent[ie] = a 
@@ -106,6 +109,7 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 			child[ie] = v 
 			edgelength[ie] = heights[a] - heights[v]
 			ie += 1 
+			daughters[ a - n ] = (u,v, edgelength[ie-2], edgelength[ie-1]) 
 			if computedescendants
 				if u <= n 
 					desc[a-n,u] = true 
@@ -130,7 +134,7 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 		end
 	end
 	
-	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs, shs, desc  )
+	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs, shs, desc, daughters, demes )
 end
 
 function SimTree( model::ModelFGY, sample::SampleConfiguration; computedescendants = false  )

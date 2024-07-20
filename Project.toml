@@ -1,7 +1,7 @@
 name = "Coalescent"
 uuid = "7af52d38-510f-42b9-ba0a-b0cde7e92322"
 authors = ["Erik Volz"]
-version = "0.0.10-DEV"
+version = "0.0.11-DEV"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

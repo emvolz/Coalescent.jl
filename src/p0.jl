@@ -27,10 +27,12 @@ end
 	n::Int
 	nNode::Int
 	edgelength::Array{Union{Nothing,Float64}}
-	heights::Array{Union{Nothing,Float64}}
+	heights::Array{Union{Nothing,Float64}} # n + nNode 
 	tiplabs::Array{Union{Nothing,String}}
 	shs::Array{Union{Nothing,Float64}} 
-	descendants::Union{Nothing,BitMatrix}
+	descendants::Union{Nothing,BitMatrix} = nothing # nNode * n 
+	daughters::Union{Nothing,Vector{Tuple{Int, Int, Float64, Float64}}} = nothing # nNode elements 
+	demes::Union{Nothing,Vector{String}} = nothing
 end
 Base.show( io::IO, x::SimTree) = print("""
 Simulated coalescent tree with $(x.n) tips and $(x.nNode) internal nodes
@@ -419,3 +421,56 @@ function tonewick(o)
 end
 
 
+function distancematrix(t)::Matrix{Float64}
+	(isnothing(t.descendants)) && throw("SimTree must be generated with computedescendants=true.")
+
+	d = zeros( t.n, t.n )
+	dnt = zeros( t.n + t.nNode, t.n )
+
+	# poedges = sortperm( t.heights[ tt.parent ] ) 
+	ponodes = sortperm( t.heights[t.n+1:end] ) .+ t.n
+	for a in ponodes
+		u,v,elu,elv = t.daughters[a-t.n] 
+		# descu = u>t.n ? findall( t.descendants[u-t.n,:] ) : u 
+		# descv = v>t.n ? findall( t.descendants[v-t.n,:] ) : v 
+
+		# define desc tips of dautghter and fill in distance from a to these desc
+		if u > t.n 
+			descu = findall( t.descendants[u-t.n,:] )
+			dnt[ a, descu ] .= elu .+ dnt[u, descu ]
+		else 
+			descu = u 
+			dnt[ a, descu ] = elu + dnt[u, descu ]
+		end
+		
+		# define desc tips of dautghter and fill in distance from a to these desc
+		if v > t.n 
+			descv = findall( t.descendants[v-t.n,:] )
+			dnt[ a, descv ] .= elv .+ dnt[v, descv ]
+		else 
+			descv = v
+			dnt[ a, descv ] = elv + dnt[v, descv ]
+		end
+
+		# fill in descu * descv elements of distance mat 
+		if (u > t.n) & (v > t.n)
+			d[ descu, descv ] .= dnt[ a, descv ]' .+ dnt[ a, descu ]
+			d[ descv, descu ] .= d[ descu, descv ]'
+		elseif  (u > t.n) & (v <= t.n) 
+			d[ descu, descv ] .= dnt[ a, descu ] .+ dnt[ a, descv ]
+			d[ descv, descu ] .= d[ descu, descv ]
+		elseif (u <= t.n) & (v > t.n) 
+			d[ descu, descv ] .= dnt[ a, descu ] .+ dnt[ a, descv ]
+			d[ descv, descu ] .= d[ descu, descv ]
+		else 
+			d[ descu, descv ] = dnt[ a, descv ] + dnt[ a, descu ]
+			d[ descv, descu ] = d[ descu, descv ]
+		end
+
+		# for uu in t.descendants[u] 
+		# 	d[uu, t.descendants[v]] .= dnt[a, t.descendants[v]] .+ dnt[a, uu] 
+		# end
+	end
+
+	d
+end
