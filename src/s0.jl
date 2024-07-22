@@ -37,7 +37,7 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 	nedges = n + nNode - 1
 	parent = Array{Union{Nothing,Int}}(nothing, nedges )
 	child = Array{Union{Nothing,Int}}(nothing, nedges )
-	daughters = Vector{Tuple{Int, Int, Float64, Float64}}(undef, nNode  )
+	daughters = Vector{Tuple{Int, Int, Int, Int }}(undef, nNode  )
 	edgelength = Array{Union{Nothing,Float64}}(nothing, nedges )
 	heights = Array{Union{Nothing,Float64}}( nothing, n + nNode )
 	demes = Array{String}(undef, n + nNode )
@@ -109,7 +109,7 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 			child[ie] = v 
 			edgelength[ie] = heights[a] - heights[v]
 			ie += 1 
-			daughters[ a - n ] = (u,v, edgelength[ie-2], edgelength[ie-1]) 
+			daughters[ a - n ] = (u,v, ie-2, ie-1) # edgelength[ie-2], edgelength[ie-1]) 
 			if computedescendants
 				if u <= n 
 					desc[a-n,u] = true 

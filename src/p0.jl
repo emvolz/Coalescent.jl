@@ -31,7 +31,7 @@ end
 	tiplabs::Array{Union{Nothing,String}}
 	shs::Array{Union{Nothing,Float64}} 
 	descendants::Union{Nothing,BitMatrix} = nothing # nNode * n 
-	daughters::Union{Nothing,Vector{Tuple{Int, Int, Float64, Float64}}} = nothing # nNode elements 
+	daughters::Union{Nothing,Vector{Tuple{Int, Int, Int, Int}}} = nothing # nNode elements 
 	demes::Union{Nothing,Vector{String}} = nothing
 end
 Base.show( io::IO, x::SimTree) = print("""
@@ -430,7 +430,9 @@ function distancematrix(t)::Matrix{Float64}
 	# poedges = sortperm( t.heights[ tt.parent ] ) 
 	ponodes = sortperm( t.heights[t.n+1:end] ) .+ t.n
 	for a in ponodes
-		u,v,elu,elv = t.daughters[a-t.n] 
+		u,v,ieu,iev = t.daughters[a-t.n] 
+		elu = t.edgelength[ ieu ]
+		elv = t.edgelength[ iev ]
 		# descu = u>t.n ? findall( t.descendants[u-t.n,:] ) : u 
 		# descv = v>t.n ? findall( t.descendants[v-t.n,:] ) : v 
 
