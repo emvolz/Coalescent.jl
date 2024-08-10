@@ -20,8 +20,9 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 	nNode = n - 1 
 	nCo = sum( [e.type == COALESCENT for e in events ] )
 	mrcaheight = events[end].height 
+	epsilonheight = mrcaheight - events[end-1].height 
 	for i in 1:(nNode - nCo ) # add coalescent events if tree is not complete (single mrca)
-		push!( events, Event(COALESCENT, mrcaheight) )
+		push!( events, Event(COALESCENT, mrcaheight + epsilonheight*i) )
 	end
 	
 	deme2n = Dict(zip(model.demes,

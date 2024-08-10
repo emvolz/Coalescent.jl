@@ -428,6 +428,7 @@ function distancematrix(t)::Matrix{Float64}
 	dnt = zeros( t.n + t.nNode, t.n )
 
 	# poedges = sortperm( t.heights[ tt.parent ] ) 
+	# TODO should not rely on heights for postorder 
 	ponodes = sortperm( t.heights[t.n+1:end] ) .+ t.n
 	for a in ponodes
 		u,v,ieu,iev = t.daughters[a-t.n] 
