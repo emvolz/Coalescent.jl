@@ -117,7 +117,7 @@ Final time: $(x.tfin)
 
 """)
 end
-
+#= 
 """
 	ModelFGY(; kwargs...)
 
@@ -137,7 +137,7 @@ Constructor for ModelFGY using keyword arguments.
 - `parameters::Dict{String,Float64}`: Model parameters
 - `helperexprs::Union{Nothing,Array{Expr}}`: Helper expressions
 """
-function ModelFGY(;
+function ModelFGY(
 		  modelname::String
 		, birthrxn::Array{Reaction}
 		, migrationrxn::Array{Reaction}
@@ -167,7 +167,7 @@ function ModelFGY(;
 		, parameters 
 		, helperexprs
 	)
-end
+end =#
 
 """
 	ModelFGY(conffn::String)
@@ -181,7 +181,24 @@ Constructor for ModelFGY from a YAML configuration file.
 - `ModelFGY`: The constructed model
 """
 function ModelFGY(conffn::String)
-	conf = YAML.load_file(conffn)
+	ModelFGY(confstr = read(conffn, String) )
+end 
+
+
+"""
+	ModelFGY(; confstr::String)
+
+Constructor for ModelFGY from a YAML configuration string.
+
+# Arguments
+- `confstr::String`: String defining model in YAML format 
+
+# Returns
+- `ModelFGY`: The constructed model
+"""
+function ModelFGY(; confstr::String)
+	# conf = YAML.load_file(conffn)
+	conf = YAML.load(confstr)
 	
 	modelname = conf["modelname"] 
 	brxns = map(b -> Reaction(b["source"]
@@ -238,19 +255,35 @@ function ModelFGY(conffn::String)
 		end
 	end
 	helperexprs = "helpers" ∈ keys(conf) ? [:($(Symbol(d["name"])) = $(Meta.parse(d["definition"]))) for d in conf["helpers"]] :  nothing 
+	# ModelFGY( 
+	# 	modelname = modelname
+	# 	, birthrxn = brxns
+	# 	, migrationrxn = migrxns
+	# 	, deathrxn = deathrxns
+	# 	, nondemerxn = nondemerxn
+	# 	, demes = demes 
+	# 	, nondemes = nondemes 
+	# 	, initial = initials 
+	# 	, t0 = t0 
+	# 	, tfin = tfin 
+	# 	, parameters = parmdict 
+	# 	, helperexprs = helperexprs 
+	# )
 	ModelFGY( 
-		modelname = modelname
-		, birthrxn = brxns
-		, migrationrxn = migrxns
-		, deathrxn = deathrxns
-		, nondemerxn = nondemerxn
-		, demes = demes 
-		, nondemes = nondemes 
-		, initial = initials 
-		, t0 = t0 
-		, tfin = tfin 
-		, parameters = parmdict 
-		, helperexprs = helperexprs 
+		modelname
+		,  brxns
+		,  migrxns
+		,  deathrxns
+		,  nondemerxn
+		,  demes 
+		,  nondemes 
+		, length(demes) 
+		, length(nondemes)
+		,  initials 
+		,  t0 
+		,  tfin 
+		,  parmdict 
+		,  helperexprs 
 	)
 end
 
