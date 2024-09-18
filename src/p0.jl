@@ -8,12 +8,35 @@ using Interpolations
 using Plots
 using Debugger
 
+"""
+    Event
+
+Represents an event in the coalescent process.
+
+# Fields
+- `type::Int`: Type of the event (SAMPLE, COALESCENT, MIGRATION, or RECOMBINATION)
+- `height::Float64`: Time of the event
+- `source::Union{Nothing,String}`: Source deme of the event (if applicable)
+- `sink::Union{Nothing,String}`: Sink deme of the event (if applicable)
+"""
 mutable struct Event
 	type::Int
 	height::Float64
 	source::Union{Nothing,String}
 	sink::Union{Nothing,String}
 end
+"""
+    Event(t::Int, b::Real)
+
+Constructor for Event with only type and height specified.
+
+# Arguments
+- `t::Int`: Type of the event
+- `b::Real`: Height (time) of the event
+
+# Returns
+- `Event`: The constructed event
+"""
 function Event(t::Int,b::Real) 
 	@assert t in [SAMPLE,COALESCENT,MIGRATION,RECOMBINATION] 
 	Event( t, b, nothing, nothing )
@@ -21,6 +44,24 @@ end
 
 
 
+"""
+    SimTree
+
+Represents a simulated coalescent tree.
+
+# Fields
+- `parent::Array{Union{Nothing,Int}}`: Parent nodes
+- `child::Array{Union{Nothing,Int}}`: Child nodes
+- `n::Int`: Number of tips
+- `nNode::Int`: Number of internal nodes
+- `edgelength::Array{Union{Nothing,Float64}}`: Edge lengths
+- `heights::Array{Union{Nothing,Float64}}`: Node heights
+- `tiplabs::Array{Union{Nothing,String}}`: Tip labels
+- `shs::Array{Union{Nothing,Float64}}`: Sample heights
+- `descendants::Union{Nothing,BitMatrix}`: Descendant matrix
+- `daughters::Union{Nothing,Vector{Tuple{Int, Int, Int, Int}}}`: Daughter nodes
+- `demes::Union{Nothing,Vector{String}}`: Demes for each node
+"""
 @kwdef mutable struct SimTree
 	parent::Array{Union{Nothing,Int}}
 	child::Array{Union{Nothing,Int}}
@@ -41,6 +82,19 @@ Tip labels:
 
 Rooted; includes branch lengths
 """)
+
+
+"""
+    SimTree(events::Array{Event})::SimTree
+
+Construct a SimTree from an array of Events.
+
+# Arguments
+- `events::Array{Event}`: Array of coalescent events
+
+# Returns
+- `SimTree`: The constructed simulated tree
+"""
 function SimTree(events::Array{Event})::SimTree
 	ix = sortperm( [ e.height for e in events ] )
 	events = events[ ix ]
@@ -101,6 +155,20 @@ function SimTree(events::Array{Event})::SimTree
 	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs,  heights[1:n] )
 end
 
+"""
+    _sim_markov(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64, p...)::SimTree
+
+Simulate a coalescent tree using a Markovian coalescent algorithm.
+
+# Arguments
+- `Ne::Function`: Effective population size function
+- `sampletimes::Array{Float64}`: Array of sample times
+- `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
+- `p...`: Additional parameters for the Ne function
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function _sim_markov(Ne::Function
 		     , sampletimes::Array{Float64}
 		     , tmrcaguess::Float64
@@ -196,6 +264,23 @@ end
 
 
 
+"""
+    SimTree(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+
+Simulate a coalescent tree with flexible Ne function and sampling times.
+
+# Arguments
+- `Ne::Function`: Effective population size function
+- `sampletimes::Array{Float64}`: Array of sample times
+- `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
+- `p...`: Additional parameters for the Ne function
+
+# Keywords
+- `algorithm::String = ALGO_STATIONARY`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function SimTree(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64
 		 , p...
 	; algorithm=ALGO_STATIONARY)::SimTree
@@ -238,16 +323,10 @@ User-specified Ne(t) function
 	end
 	sampadds = 0 
 	function sampaffect!(integrator)
-		# println( "sampaffect $(integrator.u)" )
-		# println( "sampaffect $(integrator.t)" )
-		# println( "sampaffect $(integrator.t .== sampleheights)" )
-		# println( "sampaffect $(sum(integrator.t .== sampleheights))" )
 		sampadds += 1
 		integrator.u[1] += sum( integrator.t .== sampleheights )
 	end
 	sampcb = DiscreteCallback( sampcondition, sampaffect! )
-	# s = solve( pr, AutoTsit5(Rosenbrock23())
-	#    , callback = sampcb, tstops = unique( sampleheights ) )
 	s = solve( pr, Rosenbrock23()
 	   , callback = sampcb, tstops = unique( sampleheights ) )
 	u = s.u 
@@ -286,10 +365,6 @@ User-specified Ne(t) function
 	while any(A .< 1.)
 		i = findfirst( A .< 1. )
 		_cou = X[i,1] + (1.0-X[i,1])*rand()
-		# @show "########"
-		# @show A
-		# @show i 
-		# @show X[i,:]
 		println("Resampling coalescent times, index $(i), height $(X[i,2])")
 
 		X[i,1] = _cou 
@@ -305,6 +380,23 @@ User-specified Ne(t) function
 	tr
 end
 
+"""
+    SimTree(Ne::Float64, n::Int64, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+
+Simulate a coalescent tree with constant Ne and n samples at time 0.
+
+# Arguments
+- `Ne::Float64`: Constant effective population size
+- `n::Int64`: Number of samples
+- `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
+- `p...`: Additional parameters (unused for constant Ne)
+
+# Keywords
+- `algorithm::String = ALGO_STATIONARY`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function SimTree(Ne::Float64, n::Int64, tmrcaguess::Float64, p... ; algorithm=ALGO_STATIONARY)::SimTree
 	_Ne(t,p...) = Ne
 	SimTree( _Ne 
@@ -315,6 +407,23 @@ function SimTree(Ne::Float64, n::Int64, tmrcaguess::Float64, p... ; algorithm=AL
 	)
 end
 
+"""
+    SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+
+Simulate a coalescent tree with constant Ne and flexible sampling times.
+
+# Arguments
+- `Ne::Float64`: Constant effective population size
+- `sampletimes::Array{Float64}`: Array of sample times
+- `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
+- `p...`: Additional parameters (unused for constant Ne)
+
+# Keywords
+- `algorithm::String = ALGO_STATIONARY`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, p... ; algorithm=ALGO_STATIONARY)::SimTree
 	_Ne(t,p...) = Ne
 	SimTree( _Ne
@@ -325,6 +434,23 @@ function SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, 
 	)
 end
 
+"""
+    SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+
+Simulate a coalescent tree with flexible Ne function and n samples at time 0.
+
+# Arguments
+- `Ne::Function`: Effective population size over time function
+- `n::Int64`: Number of samples
+- `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
+- `p...`: Additional parameters for the Ne function
+
+# Keywords
+- `algorithm::String = ALGO_STATIONARY`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p... ; algorithm=ALGO_STATIONARY)::SimTree
 	SimTree( Ne
 	 , repeat( [0.], n) 
@@ -334,6 +460,18 @@ function SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p... ; algorithm=A
 	)
 end
 
+"""
+    SimTree(Ne::Float64, n::Int64)::SimTree
+
+Simulate a coalescent tree with constant Ne and n samples at time 0, without specifying tmrcaguess.
+
+# Arguments
+- `Ne::Float64`: Constant effective population size
+- `n::Int64`: Number of samples
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function SimTree( Ne::Float64, n::Int64)::SimTree 
 	@assert n > 1
 	@assert Ne > 0 
@@ -352,18 +490,8 @@ function SimTree( Ne::Float64, n::Int64)::SimTree
 	SimTree( events )
 end 
 
-function toRphylo(stre)
+#= function toRphylo(stre)
 	edge = [stre.parent stre.child]
-	# @rput edge stre.edgelength stre.n stre.nNode stre.tiplabs
-	# R"""
-	# library( ape )
-	# edge <- unlist( edge )|> matrix( ncol =2 )
-	# tr <- structure(list(n = n, Nnode = nnodes, edge = edge, edge.length=unlist(edgelength), tip.label=unlist(tiplabs)), class='phylo')
-	# tr <- reorder(tr)
-	# trnwk <- write.tree(tr)
-	# 1
-	# """;
-	# @rget trnwk;
 	R"""
 	library(ape)
 	tr <- structure(list(n = $(stre.n), Nnode = $(stre.nNode)
@@ -379,11 +507,22 @@ function toRphylo(stre)
 	# @rget tr
 	R"tr"
 end
-
+=#
 
 
 
 # TODO compute mdt, dgtrs in SimTree 
+"""
+    tonewick(o)
+
+Convert a SimTree to a Newick format string.
+
+# Arguments
+- `o::SimTree`: The SimTree to convert
+
+# Returns
+- `String`: Newick format representation of the tree
+"""
 function tonewick(o)
 	edge = [o.parent o.child]
 	n = o.n 
@@ -420,14 +559,23 @@ function tonewick(o)
 	nwk
 end
 
+"""
+    distancematrix(t)::Matrix{Float64}
 
+Compute the distance matrix for a SimTree.
+
+# Arguments
+- `t::SimTree`: The SimTree to compute distances for
+
+# Returns
+- `Matrix{Float64}`: The computed distance matrix
+"""
 function distancematrix(t)::Matrix{Float64}
 	(isnothing(t.descendants)) && throw("SimTree must be generated with computedescendants=true.")
 
 	d = zeros( t.n, t.n )
 	dnt = zeros( t.n + t.nNode, t.n )
 
-	# poedges = sortperm( t.heights[ tt.parent ] ) 
 	# TODO should not rely on heights for postorder 
 	ponodes = sortperm( t.heights[t.n+1:end] ) .+ t.n
 	for a in ponodes

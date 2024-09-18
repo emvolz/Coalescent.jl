@@ -12,6 +12,21 @@ using Debugger
 import MacroTools
 using JumpProcesses
 
+"""
+    SimTree(events::Array{Event}, model::ModelFGY; computedescendants = false)::SimTree
+
+Construct a SimTree from an array of Events and a ModelFGY.
+
+# Arguments
+- `events::Array{Event}`: Array of coalescent events
+- `model::ModelFGY`: The structured FGY model
+
+# Keywords
+- `computedescendants::Bool = false`: Whether to compute descendants for each node
+
+# Returns
+- `SimTree`: The constructed simulated tree
+"""
 function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = false)::SimTree
 	
 	ix = sortperm( [ e.height for e in events ] )
@@ -138,6 +153,21 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs, shs, desc, daughters, demes )
 end
 
+"""
+    SimTree(model::ModelFGY, sample::SampleConfiguration; computedescendants = false)
+
+Simulate a coalescent tree based on a given model and sampling configuration.
+
+# Arguments
+- `model::ModelFGY`: The structured FGY model to simulate
+- `sample::SampleConfiguration`: The sampling configuration for the simulation
+
+# Keywords
+- `computedescendants::Bool = false`: Whether to compute descendants for each node
+
+# Returns
+- `SimTree`: A simulated coalescent tree
+"""
 function SimTree( model::ModelFGY, sample::SampleConfiguration; computedescendants = false  )
 	_sim_markov( model
 	  , [ x[2] for x in sample.sconf ]
@@ -148,7 +178,24 @@ end
 
 
 
+"""
+    _sim_markov(model::ModelFGY, sampletimes::Array{Float64}, samplestates::Array{String}, computedescendants::Bool; odemethod = :(AutoTsit5(Rosenbrock23())), ytol = 1e-6)
 
+Simulate a coalescent tree using a Markovian coalescent algorithm for a structured population model.
+
+# Arguments
+- `model::ModelFGY`: The structured FGY model to simulate
+- `sampletimes::Array{Float64}`: Array of sample times
+- `samplestates::Array{String}`: Array of sample states (demes)
+- `computedescendants::Bool`: Whether to compute descendants for each node
+
+# Keywords
+- `odemethod = :(AutoTsit5(Rosenbrock23()))`: The ODE solver method to use
+- `ytol::Float64 = 1e-6`: Tolerance for numerical stability in rate calculations
+
+# Returns
+- `SimTree`: The simulated coalescent tree
+"""
 function _sim_markov( model::ModelFGY
 		     , sampletimes::Array{Float64}
 		     , samplestates::Array{String}
@@ -158,10 +205,6 @@ function _sim_markov( model::ModelFGY
 		     ; odemethod = :(AutoTsit5(Rosenbrock23()))
 		     , ytol = 1e-6
 	)
-# 	print( """Simulating coalescent, sample size = $(length(sampletimes))
-# Markovian coalescent algorithm
-# User-specified model
-# """ * string(model) ) #$(string(model))
 	n = length( sampletimes )
 	@assert n > 1
 	# @assert tmrcaguess > 0. 
@@ -216,20 +259,14 @@ function _sim_markov( model::ModelFGY
 	helperexpr = isnothing(model.helperexprs) ? :() :  Expr( :block, model.helperexprs... )
 	Aex = Expr( :block, [ ( :($(Symbol("A_"*k)) = A[$k]) ) for k in keys(A)]... )
 
+	"Replace occurrences of the time variable 't' with '(mst-t)' in the given expression."
 	function _sanitize_time_variable( expr )
-		#= 
-		if time (t) appears in expr, replace with (mst-t) for coalescent equations
-				example input:
-				:(if t > 80.6
-					mu * hostB3
-				else
-					0.0
-				end)
-		=# 
 		MacroTools.postwalk( expr ) do x 
 			x == :t ? :(mst-t) : x 
 		end
 	end
+
+	"Generate the expression for coalescence rate."
 	function _corateex( rxn ; ytol = ytol )
 		@assert rxn.type == RXN_BIRTH
 		@assert !isnothing( rxn.recipient )
@@ -248,6 +285,8 @@ function _sim_markov( model::ModelFGY
 		end
 		Expr( :call, :*, aex,  _sanitize_time_variable( rxn.expr ) )
 	end
+
+	"Generate the expression for birth-migration rate."
 	function _birthmigrateex( rxn ; ytol = ytol  )
 		# forward time transmission s -> r, reverse time migration r -> s
 		@assert rxn.type == RXN_BIRTH
@@ -265,6 +304,8 @@ function _sim_markov( model::ModelFGY
 
 		Expr( :call, :*, aex,  _sanitize_time_variable( rxn.expr )  )
 	end
+
+	"Generate the expression for migration rate."
 	function _migrateex( rxn ; ytol = ytol )
 		# reverse time migration r -> s
 		@assert rxn.type == RXN_MIG
@@ -316,9 +357,11 @@ function _sim_markov( model::ModelFGY
 		du[1] = max(0., sum(eventrates) ); 
 	end
 
+	"Trigger callback." 
 	function sampcondition(u,t,integrator )::Bool
 		t == ushs[ ixsampleheight ] 
 	end
+	"Update state based on sampling." 
 	function sampaffect!(integrator)
 		currentsampleheight = ushs[ ixsampleheight ] 
 		for (ideme,deme) in enumerate( model.demes )
@@ -339,9 +382,12 @@ function _sim_markov( model::ModelFGY
 	end
 	sampcb = DiscreteCallback( sampcondition, sampaffect! )
 	
+	"Triggers callback. Check if an event should occur."
 	function eventcondition(u,t,integrator)::Real
 		exp(-u[1]) - cou # note: not integrator.u[1]
 	end
+
+	"Handle the occurrence of an event."
 	function eventaffect!(integrator)
 		# fneventrates!(eventrates, integrator.t, A, interpdict) # A, interpdict 
 		Base.invokelatest( fneventrates!, eventrates, integrator.t, A, interpdict )

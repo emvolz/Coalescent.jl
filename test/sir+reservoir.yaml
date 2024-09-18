@@ -1,0 +1,68 @@
+modelname: sir+reservoir1
+
+version: 0.0.2 
+
+births:
+  - source: I 
+    recipient: I 
+    rate: beta*I*S/N 
+  - source: I_res 
+    recipient: I_res 
+    rate: beta_res*I_res*S_res / N_res 
+  - source: I_res # transmissions from reservoir 
+    recipient: I 
+    rate: mu*I_res*S/N 
+
+deaths: 
+  - deme: I 
+    rate: gamma*I 
+  - deme: I_res 
+    rate: gamma*I_res 
+
+# migrations: 
+#   - source: I_res 
+#     recipient: I 
+#     rate: mu*I_res 
+
+parameters: 
+  - name: beta 
+    value: 1.5/7 
+  - name: beta_res 
+    value: 1.5/7 
+  - name: gamma 
+    value: 1.0/7.0
+  - name: N 
+    value: 1e3 
+  - name: N_res 
+    value: 1e6 
+  - name: mu 
+    value: 1e-4*(1.0/7.0) # about 1 in 10k will migrate
+
+dynamic_variables: 
+  - name: I 
+    initial_value: 0.0 
+  - name: I_res 
+    initial_value: 1.0 
+  - name: S 
+    initial_value: 1e4
+    ode: -beta*I*S/N -mu*I_res*S/N 
+  - name: S_res
+    initial_value: 1e6 
+    ode: -beta_res*I_res*S_res/N_res
+
+time: 
+  initial: 0.0 
+  final: 220. #183. 
+
+# sample: 
+#   - deme: I 
+#     time: rand( Uniform( 120., 220. ), 100 )
+#   - deme: I_res 
+#     time: rand(  Uniform( 30., 190.), 25 )
+
+sample: 
+  - deme: I 
+    time: collect(range(100., 220., length=3000)) 
+  - deme: I_res 
+    time: collect(range(100., 220., length=750))
+

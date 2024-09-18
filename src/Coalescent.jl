@@ -1,6 +1,19 @@
+"""
+Coalescent
+
+Coalescent simulation and analysis with flexible markup of demographic processes and sampling patterns. 
+
+This module provides tools for:
+
+- Simulating coalescent trees
+- Handling structured population models
+- Solving ordinary differential equations for population dynamics
+- Managing sample configuration
+
+"""
 module Coalescent
 
-export SimTree, toRphylo, tonewick
+export SimTree,  tonewick
 export ModelFGY, solveodes
 export SampleConfiguration
 
@@ -17,16 +30,19 @@ using Plots
 using StatsBase
 using Debugger
 
+"Reaction types defining rates of genealogical events." 
 const RXN_BIRTH = 0 
 const RXN_MIG = 1 
 const RXN_DEATH = 2 
 const RXN_DYNVAR = 3 
 
+"Events in a coalescent process." 
 const SAMPLE = 0
 const COALESCENT = 1
 const MIGRATION = 2
 const RECOMBINATION = 3
 
+"Alternative models of the coalescent distribution. "
 const ALGO_MARKOV = "markov"
 const ALGO_STATIONARY = "stationary" 
 
@@ -37,23 +53,3 @@ include("p0.jl")
 include("s0.jl")
 
 end;
-
-
-# # using .Coalescent
-# using YAML 
-# using Test
-# using Plots
-# using Debugger 
-#
-# conf = YAML.load_file("../test/q1.yaml")
-# m = ModelFGY( "../test/q1.yaml" )
-# o = solveodes( m )
-# plot( o )
-#
-# s = SampleConfiguration( "../test/q1.yaml" )
-#
-# # @run t = SimTree( m, s )
-# t = SimTree( m, s )
-#
-# # import .Coalescent
-# write( "test.nwk", Coalescent.tonewick(t))
