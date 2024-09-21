@@ -22,15 +22,12 @@ Relative to [msprime](), some major features are currently missing:
 
 First, let's load the necessary packages:
 
-```julia
+```julia; results="hidden"
 using Coalescent
 using Phylo # For plotting trees 
 using Plots # For plotting demographic trajectories
-using Distributions # For random number generation
+using Distributions # For random number generation 
 ```
-
-
-
 
 
 Let's start with a simple coalescent simulation with a constant population size=10 (first argument) and 10 samples:
@@ -40,26 +37,6 @@ tr = SimTree(10.0, 10)
 @show tr 
 tonewick(tr)
 ```
-
-```
-Simulated coalescent tree with 10 tips and 9 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.1", "t.2", "t.3", "t.4", "t.5", "t.6", "t.7", "t
-.8", "t.9", "t.10"] ...
-
-Rooted; includes branch lengths
-tr = 
-"((t.10:12.388082054016683,(t.7:2.0062199667138385,((t.6:0.8587233444008453
-,(t.3:0.2749658563621603,t.9:0.2749658563621603):0.583757488038685):0.40486
-02065744562,(t.1:0.6952444803645519,t.2:0.6952444803645519):0.5683390706107
-496):0.742636415738537):10.381862087302846):2.4817969794943107,(t.4:6.61246
-6640046328,(t.5:0.023058760633910717,t.8:0.023058760633910717):6.5894078794
-12418):8.257412393464666):0.0;"
-```
-
-
-
-
 
 `tonewick` converts the tree to a portable newick string for loading into other software or packages. 
 
@@ -71,24 +48,6 @@ Now, let's simulate a coalescent with a variable population size:
 tr = SimTree((t,p...)->exp(-t), 10)
 ```
 
-```
-Simulating coalescent, sample size =10
-Initial guess of time to most recent common ancestor (before most recent sa
-mple): 1.0
-Markovian coalescent algorithm
-User-specified Ne(t) function 
-Simulated coalescent tree with 10 tips and 9 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.1", "t.2", "t.3", "t.4", "t.5", "t.6", "t.7", "t
-.8", "t.9", "t.10"] ...
-
-Rooted; includes branch lengths
-```
-
-
-
-
-
 This creates a tree where the population size increases exponentially over time.
 Note that in univariate models, the convention is for time to represent time __before__ the most recent sample. Thus time zero always represents when the most recent sample was collected. 
 
@@ -97,10 +56,6 @@ We can visualize the tree using [Phylo.jl](https://github.com/EcoJulia/Phylo.jl)
 ```julia
 tonewick(tr) |> parsenewick |> plot
 ```
-
-![](figures/README_4_1.png)
-
-
 
 ## Parametric population size functions
 
@@ -111,26 +66,6 @@ tr = SimTree((t,Ne0,λ) -> Ne0*exp(-λ*t), 10, 2_000, 0.25)
 @show tr 
 tonewick(tr) |> parsenewick |> plot
 ```
-
-```
-Simulating coalescent, sample size =10
-Initial guess of time to most recent common ancestor (before most recent sa
-mple): 2000.0
-Markovian coalescent algorithm
-User-specified Ne(t) function 
-Simulated coalescent tree with 10 tips and 9 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.1", "t.2", "t.3", "t.4", "t.5", "t.6", "t.7", "t
-.8", "t.9", "t.10"] ...
-
-Rooted; includes branch lengths
-tr =
-```
-
-
-![](figures/README_5_1.png)
-
-
 
 This simulates a population that starts at size Ne0 and declines exponentially with rate λ. Arguments to `SimTree` folllowing the sample size (10) are passed as arguments to the effective population size function.  So in this case, Ne0=2000 and λ=0.25. 
 
@@ -144,35 +79,11 @@ nefunc(t,K) = 10 + K*(1/(1+exp(-(t-5))))
 plot(t->nefunc(t,100), 0, 10)
 ```
 
-![](figures/README_6_1.png)
-
-
-
 These simulations are pretty fast, although for unstructured models, there are faster alternatives. This is how long it takes to simulate a tree with 10 thousand samples and the logistic growth model: 
 
 ```julia
 @time SimTree(nefunc, 10_000, 100)
 ```
-
-```
-Simulating coalescent, sample size =10000
-Initial guess of time to most recent common ancestor (before most recent sa
-mple): 10.669285092428485
-Markovian coalescent algorithm
-User-specified Ne(t) function 
-  0.586741 seconds (12.50 M allocations: 337.345 MiB, 8.66% gc time, 24.33%
- compilation time)
-Simulated coalescent tree with 10000 tips and 9999 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.1", "t.2", "t.3", "t.4", "t.5", "t.6", "t.7", "t
-.8", "t.9", "t.10"] ...
-
-Rooted; includes branch lengths
-```
-
-
-
-
 
 ## Population Bottleneck
 
@@ -183,33 +94,11 @@ nefunc(t, Ne1,Ne2,T) = t<T ? Ne1 : Ne2
 plot(t->nefunc(t, 10.0, 1.0, 5.0), 0, 10)
 ```
 
-![](figures/README_8_1.png)
-
 ```julia
 tr = SimTree(nefunc, 25, 100.0, 1.0, 5.0)
 @show tr 
 tonewick(tr) |> parsenewick |> plot
 ```
-
-```
-Simulating coalescent, sample size =25
-Initial guess of time to most recent common ancestor (before most recent sa
-mple): 100.0
-Markovian coalescent algorithm
-User-specified Ne(t) function 
-Simulated coalescent tree with 25 tips and 24 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.1", "t.2", "t.3", "t.4", "t.5", "t.6", "t.7", "t
-.8", "t.9", "t.10"] ...
-
-Rooted; includes branch lengths
-tr =
-```
-
-
-![](figures/README_9_1.png)
-
-
 
 
 ## Variable Sampling Times
@@ -220,19 +109,6 @@ We can also simulate coalescent trees with samples taken at different times:
 tr = SimTree(1.0, rand(10))
 tonewick(tr) |> parsenewick |> plot
 ```
-
-```
-Simulating coalescent, sample size =10
-Initial guess of time to most recent common ancestor (before most recent sa
-mple): 1.0
-Markovian coalescent algorithm
-User-specified Ne(t) function
-```
-
-
-![](figures/README_10_1.png)
-
-
 
 The first argument is Ne, and the second argument is a vector sample times, which in this case were 10 uniform random numbers. 
 
@@ -283,21 +159,6 @@ time:
 """
 ```
 
-```
-"modelname: example_sir\nbirths:\n  - source: I # Infections generate new i
-nfections at this rate \n    recipient: I \n    rate: β*S*I/N\n\ndeaths:\n 
- - deme: I # Representing recovery of infected individuals\n    rate: γ*I\n
-\nparameters:\n  - name: β # transmission rate\n    value: " ⋯ 78 bytes ⋯ "
- I\n    initial_value: 1.0\n  - name: S\n    initial_value: 1e5\n    ode: -
-β*S*I/N\n  - name: R\n    initial_value: 0.0\n    ode: γ*I\n\nhelpers: # Ot
-her variables that can make it easier to define the ODEs \n  - name: N\n   
- definition: S+I+R\n\ntime: \n  initial: 1.0\n  final: 20.0 \n"
-```
-
-
-
-
-
 Note that this model schema follows the conventions of so-called [FGY models](https://github.com/mrc-ide/PhyDyn/wiki/Population-Model). Specifically: 
 
 - The genealogical process is defined by several state & time dependant rates that can influence the history of a lineage: Births, Migrations (examples in later sections) and Deaths
@@ -305,48 +166,12 @@ Note that this model schema follows the conventions of so-called [FGY models](ht
 
 Now we integrate the model and plot a trajectory: 
 
-```julia
+```julia 
 sirmodel = ModelFGY(confstr = sir_yaml)
 @show sirmodel 
 soln_sirmodel = solveodes(sirmodel)
 plot(soln_sirmodel)
 ```
-
-```
-Compartmental model with 1 demes, 
-and 2 other dynamic variables.
-
-Dynamic variables: ["I"], ["S", "R"]
-
-Parameters: 
-2×2 DataFrame
- Row │ parameter  value
-     │ String     Float64
-─────┼────────────────────
-   1 │ γ              2.0
-   2 │ β              3.0
-
-Initial conditions: Dict{String, Number}("I" => 1.0, "S" => 100000.0, "R" =
-> 0.0)
-3×2 DataFrame
- Row │ variable  initial value
-     │ String    Float64
-─────┼─────────────────────────
-   1 │ I                   1.0
-   2 │ S              100000.0
-   3 │ R                   0.0
-
-Initial time: 1.0
-
-Final time: 20.0
-
-sirmodel =
-```
-
-
-![](figures/README_12_1.png)
-
-
 
 Now let's define a sampling scheme. There are several ways to do this. 
 Samples can be defined a particular time and a particular deme (see structured models). 
@@ -372,29 +197,12 @@ sample:
 sirsamp = SampleConfiguration(confstr = sirsample_yaml)
 ```
 
-```
-Coalescent.SampleConfiguration(Tuple{Union{Nothing, String}, Float64}[("I",
- 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("
-I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 5.0), ("I", 6.25), 
-("I", 7.5), ("I", 8.75), ("I", 10.0), ("I", 9.61833466319438), ("I", 9.3172
-20725244646), ("I", 8.419095569823568), ("I", 8.84970827331039), ("I", 10.5
-65001225169217)])
-```
-
-
-
-
-
 Now simulate the tree with the model and sample configuration: 
 
-```julia
+```julia 
 tr = SimTree(sirmodel, sirsamp)
 tonewick(tr) |> parsenewick |> plot
 ```
-
-![](figures/README_14_1.png)
-
-
 
 
 
@@ -472,47 +280,6 @@ tr = SimTree(
 tonewick(tr) |> parsenewick |> plot
 ```
 
-```
-Compartmental model with 2 demes, 
-and 0 other dynamic variables.
-
-Dynamic variables: ["A", "B"], String[]
-
-Parameters: 
-2×2 DataFrame
- Row │ parameter  value
-     │ String     Float64
-─────┼────────────────────
-   1 │ γ             1.0
-   2 │ μ             0.05
-
-Initial conditions: Dict{String, Number}("B" => 100.0, "A" => 100.0)
-2×2 DataFrame
- Row │ variable  initial value
-     │ String    Float64
-─────┼─────────────────────────
-   1 │ B                 100.0
-   2 │ A                 100.0
-
-Initial time: 0.0
-
-Final time: 300.0
-
-islandmodel = 
-Simulated coalescent tree with 40 tips and 39 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.A.1", "t.A.2", "t.A.3", "t.A.4", "t.A.5", "t.A.6
-", "t.A.7", "t.A.8", "t.A.9", "t.A.10"] ...
-
-Rooted; includes branch lengths
-tr =
-```
-
-
-![](figures/README_15_1.png)
-
-
-
 Note that the deme of sampling is embedded in the tip label, which makes it easy to extract in other software. The deme can also be accessed programmatically in `tr.demes`.
 
 
@@ -564,11 +331,8 @@ parameters:
 twodememodel = ModelFGY(confstr=twodememigration_yaml)
 solntwodeme = solveodes(twodememodel) 
 plot(solntwodeme)
+
 ```
-
-![](figures/README_16_1.png)
-
-
 
 Because μ is a forward-time per-capita rate, the initial rate of migrations from A to B is 500μ while in the opposite direction it is only 1μ. Thus the populations converge in size over time until the total rate of migrations is the same in both directions. 
 
@@ -579,7 +343,7 @@ If you want to use the per-lineage instead per-capita migration rate, it is poss
 
 A disadvantage of the FGY model format is that the genealogical process is conditioned on a demographic history, and there is no guarantee that the process will coalesce to a single MRCA by the initial time of the simulation. For most applications, it is desired to simulate until this MRCA is reached.  Consider the previous island model and this sampling scheme: 
 
-```julia
+```julia 
 earlyislandsample_yaml = """ 
 sample:
   - deme: A 
@@ -591,25 +355,14 @@ sample:
 """;
 ```
 
-
-
-
 In this case, all of the samples are collected at time 1 (after the initial time zero), so that there is not time for the process to coalesce. In this case, the simulator will raise a warning and add branches until a MRCA is found based on the distribution of events up to time zero. This is for convenience only, and branches before time zero should not be used for subsequent analysis: 
 
-```julia
-julia> SimTree(
-           ModelFGY(confstr=islandmodel_yaml),
-           SampleConfiguration(confstr=earlyislandsample_yaml)
-       )
-Simulated coalescent tree with 40 tips and 39 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.A.1", "t.A.2", "t.A.3", "t.A.4", "t.A.5", "t.A.6", "t.A.7", "t.A.8", "t.A.9", "t.A.10"] ...
-
-Rooted; includes branch lengths
-
+```julia; term=true
+SimTree(
+    ModelFGY(confstr=islandmodel_yaml),
+    SampleConfiguration(confstr=earlyislandsample_yaml)
+)
 ```
-
-
 
 ```
 ┌ Warning: Coalescent process did not reach a common ancestor. Adding 34 nodes. 
@@ -681,51 +434,6 @@ tr = SimTree(seirmodel, seirsamp)
 tonewick(tr) |> parsenewick |> plot
 ```
 
-```
-Compartmental model with 2 demes, 
-and 2 other dynamic variables.
-
-Dynamic variables: ["I", "E"], ["S", "R"]
-
-Parameters: 
-3×2 DataFrame
- Row │ parameter  value
-     │ String     Float64
-─────┼────────────────────
-   1 │ γ₁             1.0
-   2 │ γ₂             1.0
-   3 │ β              6.0
-
-Initial conditions: Dict{String, Number}("I" => 0.0, "S" => 1000.0, "E" => 
-0.1, "R" => 0.0)
-4×2 DataFrame
- Row │ variable  initial value
-     │ String    Float64
-─────┼─────────────────────────
-   1 │ I                   0.0
-   2 │ S                1000.0
-   3 │ E                   0.1
-   4 │ R                   0.0
-
-Initial time: 0.0
-
-Final time: 10.0
-
-seirmodel = 
-Simulated coalescent tree with 10 tips and 9 internal nodes
-Tip labels:
-	Union{Nothing, String}["t.I.1", "t.I.2", "t.I.3", "t.I.11", "t.I.19", "t.I
-.28", "t.I.42", "t.I.56", "t.I.70", "t.I.76"] ...
-
-Rooted; includes branch lengths
-tr =
-```
-
-
-![](figures/README_19_1.png)
-
-
-
 In this model, lineages are sampled from the "I" deme, representing for example microbial genomes collected from symptomatic infected individuals. Migration represents the progression of disease "E" to "I". Deaths represent recovery of infected individuals. And "I" lineages generate new lineages in "E" (forwards time) according to a mass action model. 
 
 ## Computing Distances
@@ -738,55 +446,11 @@ tr = SimTree(seirmodel, seirsamp, computedescendants=true)
 Coalescent.distancematrix(tr)
 ```
 
-```
-10×10 Matrix{Float64}:
-  0.0      14.5081   10.2621   12.7303   …  9.17478   8.28589   8.89094
- 14.5081    0.0      12.7303   11.613       8.05748   7.16859   8.00205
- 10.2621   12.7303    0.0      10.9526      7.397     6.50811   7.11316
- 12.7303   11.613    10.9526    0.0         4.49516   4.45551   6.22427
- 11.8414   10.7241   10.0637    3.74399     3.60627   3.56662   5.33538
- 10.9526    9.83525   9.17478   2.47439  …  2.71738   2.67773   4.44649
-  9.14831   9.17478   7.37054   7.397       3.84144   2.95255   3.55761
-  9.17478   8.05748   7.397     4.49516     0.0       0.899952  2.66872
-  8.28589   7.16859   6.50811   4.45551     0.899952  0.0       1.77983
-  8.89094   8.00205   7.11316   6.22427     2.66872   1.77983   0.0
-```
-
-
-
-
-
 Note that the simulator must be called with `computedescendants=true` in this case which will add modestly to simulation time and substantially to memory usage. 
 If you wish to simulate an evolutionary model, so that for example distances represent substitutions per site, you can modify the branch lengths (`tr.edgelength`) before computing the distance matrix. For example, this would simulate a Jukes-Cantor model with substitution rate 0.001 and 10,000 nucleotides: 
 
-```julia
+```julia 
 tr.edgelength .= [ Poisson(rate) |> rand for rate in tr.edgelength*10_000*0.001  ]
 ```
-
-```
-18-element Vector{Union{Nothing, Float64}}:
-  3.0
- 19.0
-  2.0
- 13.0
- 52.0
- 57.0
-  2.0
- 19.0
-  1.0
-  5.0
- 11.0
- 18.0
-  5.0
- 55.0
-  0.0
-  4.0
-  5.0
-  4.0
-```
-
-
-
-
 
 Future versions may streamline this simulation. 
