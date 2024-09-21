@@ -49,12 +49,12 @@ Tip labels:
 
 Rooted; includes branch lengths
 tr = 
-"((t.10:12.388082054016683,(t.7:2.0062199667138385,((t.6:0.8587233444008453
-,(t.3:0.2749658563621603,t.9:0.2749658563621603):0.583757488038685):0.40486
-02065744562,(t.1:0.6952444803645519,t.2:0.6952444803645519):0.5683390706107
-496):0.742636415738537):10.381862087302846):2.4817969794943107,(t.4:6.61246
-6640046328,(t.5:0.023058760633910717,t.8:0.023058760633910717):6.5894078794
-12418):8.257412393464666):0.0;"
+"((((t.4:2.520073107400519,t.5:2.520073107400519):1.3174591901714678,(t.9:1
+.266569944939787,(t.10:0.36999246585678014,(t.1:0.36707169076260365,t.7:0.3
+6707169076260365):0.0029207750941764865):0.8965774790830068):2.570962352632
+2):2.013564887352403,(t.2:1.6115809554183689,t.8:1.6115809554183689):4.2395
+16229506021):5.320626273601084,(t.3:5.617177202174617,t.6:5.617177202174617
+):5.554546256350856):0.0;"
 ```
 
 
@@ -160,8 +160,8 @@ Initial guess of time to most recent common ancestor (before most recent sa
 mple): 10.669285092428485
 Markovian coalescent algorithm
 User-specified Ne(t) function 
-  0.586741 seconds (12.50 M allocations: 337.345 MiB, 8.66% gc time, 24.33%
- compilation time)
+  0.600311 seconds (12.49 M allocations: 335.358 MiB, 10.20% gc time, 27.40
+% compilation time)
 Simulated coalescent tree with 10000 tips and 9999 internal nodes
 Tip labels:
 	Union{Nothing, String}["t.1", "t.2", "t.3", "t.4", "t.5", "t.6", "t.7", "t
@@ -280,20 +280,8 @@ helpers: # Other variables that can make it easier to define the ODEs
 time: 
   initial: 1.0
   final: 20.0 
-"""
+""";
 ```
-
-```
-"modelname: example_sir\nbirths:\n  - source: I # Infections generate new i
-nfections at this rate \n    recipient: I \n    rate: β*S*I/N\n\ndeaths:\n 
- - deme: I # Representing recovery of infected individuals\n    rate: γ*I\n
-\nparameters:\n  - name: β # transmission rate\n    value: " ⋯ 78 bytes ⋯ "
- I\n    initial_value: 1.0\n  - name: S\n    initial_value: 1e5\n    ode: -
-β*S*I/N\n  - name: R\n    initial_value: 0.0\n    ode: γ*I\n\nhelpers: # Ot
-her variables that can make it easier to define the ODEs \n  - name: N\n   
- definition: S+I+R\n\ntime: \n  initial: 1.0\n  final: 20.0 \n"
-```
-
 
 
 
@@ -369,18 +357,8 @@ sample:
   #- table: ./sampletimes.csv # A table with columns <sample_time>, <deme>
 """
 
-sirsamp = SampleConfiguration(confstr = sirsample_yaml)
+sirsamp = SampleConfiguration(confstr = sirsample_yaml);
 ```
-
-```
-Coalescent.SampleConfiguration(Tuple{Union{Nothing, String}, Float64}[("I",
- 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("
-I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 15.0), ("I", 5.0), ("I", 6.25), 
-("I", 7.5), ("I", 8.75), ("I", 10.0), ("I", 9.61833466319438), ("I", 9.3172
-20725244646), ("I", 8.419095569823568), ("I", 8.84970827331039), ("I", 10.5
-65001225169217)])
-```
-
 
 
 
@@ -714,8 +692,8 @@ Final time: 10.0
 seirmodel = 
 Simulated coalescent tree with 10 tips and 9 internal nodes
 Tip labels:
-	Union{Nothing, String}["t.I.1", "t.I.2", "t.I.3", "t.I.11", "t.I.19", "t.I
-.28", "t.I.42", "t.I.56", "t.I.70", "t.I.76"] ...
+	Union{Nothing, String}["t.I.1", "t.I.2", "t.I.4", "t.I.8", "t.I.11", "t.I.
+16", "t.I.33", "t.I.50", "t.I.60", "t.I.70"] ...
 
 Rooted; includes branch lengths
 tr =
@@ -740,16 +718,16 @@ Coalescent.distancematrix(tr)
 
 ```
 10×10 Matrix{Float64}:
-  0.0      14.5081   10.2621   12.7303   …  9.17478   8.28589   8.89094
- 14.5081    0.0      12.7303   11.613       8.05748   7.16859   8.00205
- 10.2621   12.7303    0.0      10.9526      7.397     6.50811   7.11316
- 12.7303   11.613    10.9526    0.0         4.49516   4.45551   6.22427
- 11.8414   10.7241   10.0637    3.74399     3.60627   3.56662   5.33538
- 10.9526    9.83525   9.17478   2.47439  …  2.71738   2.67773   4.44649
-  9.14831   9.17478   7.37054   7.397       3.84144   2.95255   3.55761
-  9.17478   8.05748   7.397     4.49516     0.0       0.899952  2.66872
-  8.28589   7.16859   6.50811   4.45551     0.899952  0.0       1.77983
-  8.89094   8.00205   7.11316   6.22427     2.66872   1.77983   0.0
+  0.0      14.9448   12.7552   …  8.09323  8.3108   8.72257  8.30531
+ 14.9448    0.0      13.167       9.61146  8.72257  6.75937  7.41642
+ 12.7552   13.167     0.0         7.42192  5.02444  6.94479  6.52753
+ 11.835    12.2781   10.0886      6.50165  5.64414  6.05591  5.63864
+ 10.1032   11.3892    9.19969     4.76983  4.75525  5.16702  4.74975
+  6.81885  10.5003    8.3108   …  3.64878  3.86636  4.27813  3.86086
+  8.09323   9.61146   7.42192     0.0      2.97747  3.38924  2.97197
+  8.3108    8.72257   5.02444     2.97747  0.0      2.50035  2.08309
+  8.72257   6.75937   6.94479     3.38924  2.50035  0.0      1.1942
+  8.30531   7.41642   6.52753     2.97197  2.08309  1.1942   0.0
 ```
 
 
@@ -765,24 +743,24 @@ tr.edgelength .= [ Poisson(rate) |> rand for rate in tr.edgelength*10_000*0.001 
 
 ```
 18-element Vector{Union{Nothing, Float64}}:
-  3.0
- 19.0
-  2.0
- 13.0
- 52.0
- 57.0
-  2.0
- 19.0
-  1.0
-  5.0
+ 58.0
+  8.0
+  7.0
+ 33.0
  11.0
- 18.0
-  5.0
- 55.0
+  7.0
+  1.0
+ 30.0
+  6.0
+ 47.0
   0.0
-  4.0
+  3.0
+  3.0
+ 59.0
   5.0
-  4.0
+  5.0
+  2.0
+  2.0
 ```
 
 

@@ -156,7 +156,7 @@ helpers: # Other variables that can make it easier to define the ODEs
 time: 
   initial: 1.0
   final: 20.0 
-"""
+"""; 
 ```
 
 Note that this model schema follows the conventions of so-called [FGY models](https://github.com/mrc-ide/PhyDyn/wiki/Population-Model). Specifically: 
@@ -194,7 +194,7 @@ sample:
   #- table: ./sampletimes.csv # A table with columns <sample_time>, <deme>
 """
 
-sirsamp = SampleConfiguration(confstr = sirsample_yaml)
+sirsamp = SampleConfiguration(confstr = sirsample_yaml); 
 ```
 
 Now simulate the tree with the model and sample configuration: 
