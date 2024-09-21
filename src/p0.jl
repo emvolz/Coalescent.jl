@@ -113,6 +113,7 @@ function SimTree(events::Array{Event})::SimTree
 	child = Array{Union{Nothing,Int}}(nothing, nedges )
 	edgelength = Array{Union{Nothing,Float64}}(nothing, nedges )
 	heights = Array{Union{Nothing,Float64}}( nothing, n + nNode )
+	daughters = Vector{Tuple{Int, Int, Int, Int }}(undef, nNode  )
 	
 	A=0
 	ie = 1
@@ -145,6 +146,7 @@ function SimTree(events::Array{Event})::SimTree
 			parent[ie] = a 
 			child[ie] = v 
 			edgelength[ie] = heights[a] - heights[v]
+			daughters[a-n] = (u,v,ie-1,ie)
 			ie += 1 
 			a -= 1
 		else
@@ -152,8 +154,12 @@ function SimTree(events::Array{Event})::SimTree
 		end
 	end
 	
-	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs,  heights[1:n] )
+	SimTree( parent, child, n, nNode, edgelength, heights, tiplabs,  heights[1:n]
+	, nothing, daughters # descendants , daughters 
+	, nothing # deme
+	)
 end
+
 
 """
     _sim_markov(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64, p...)::SimTree
@@ -195,9 +201,8 @@ User-specified Ne(t) function
 	coheights = Array{Float64}(undef,0); sizehint!(coheights, n-1)
 	A = sum(sampleheights .== 0.) |> float 
 
-	function coodes!(du, u, p, t)
-		N = Ne(t, pars )
-		# du[1] = -u[1] * A*(A-1.0)/(2N)
+	function coodes!(du, u, pars, t)
+		N = Ne(t, p... )
 		du[1] = max(0., A*(A-1.)/(2N)) # cumulative hazard 
 	end
 
@@ -206,7 +211,6 @@ User-specified Ne(t) function
 		t>0 && t in sampleheights
 	end
 	function sampaffect!(integrator)
-		 #TODO does this work with multiple samples at integrator.t? probably not
 		sampadds += 1
 		# A += 1.
 		A += sum( sampleheights .== integrator.t  )
@@ -230,8 +234,9 @@ User-specified Ne(t) function
 	cbs = CallbackSet( sampcb, cocb )
 	
 	# integ = Rosenbrock23()
-	# integ = AutoTsit5(Rosenbrock23())
-	integ = Tsit5()
+	integ = AutoTsit5(Rosenbrock23())
+	# integ = RadauIIA5() 
+	# integ = Tsit5()
 
 	pr = ODEProblem( coodes!
 		 , [0.0]
@@ -241,18 +246,36 @@ User-specified Ne(t) function
 	s = solve( pr, integ 
 	   , callback = cbs, tstops = unique( sampleheights ) )
 	u = s.u 
-	taxis = s.t 
-	tfin = s.t[end]*1.5
+	taxis = s.t
+	tfin0 = s.t[end] 
+	dxt = s.t[end] - s.t[end-1]
+	tfin = tfin0 
 	while cocount < (n-1)
 		pr = ODEProblem( coodes!
 		  , s.u[end]
 		  , ( s.t[end], tfin )
 		)
 		s = solve( pr, integ
-		   , callback = cbs, tstops = unique( sampleheights ) )
+		   , callback = cbs
+		   , tstops = unique( sampleheights ) 
+		   # , dt = dxt 
+		   # , dtmin = dxt
+		   # , force_dtmin = true 
+		   )
 		u = [u ; s.u ]
 		taxis = [taxis ; s.t ]
-		tfin = s.t[end]*1.5
+		tfin += tfin0
+
+		# N = Ne(s.t[end], p... )
+		# @show last(u, 5 )
+		# @show last( taxis, 5) 
+		# @show cocount
+		# @show tfin 
+		# @show A 
+		# @show N
+		# @show max(0., A*(A-1.)/(2Ne(s.t[end], p... ))) 
+		# @show dxt 
+		# @assert !isnan(N)
 	end
 	
 	tr = SimTree( [[Event(COALESCENT, h) for h in coheights] ; 
@@ -276,24 +299,30 @@ Simulate a coalescent tree with flexible Ne function and sampling times.
 - `p...`: Additional parameters for the Ne function
 
 # Keywords
-- `algorithm::String = ALGO_STATIONARY`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
+- `algorithm::String = ALGO_MARKOV`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
 
 # Returns
 - `SimTree`: The simulated coalescent tree
 """
-function SimTree(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64
-		 , p...
-	; algorithm=ALGO_STATIONARY)::SimTree
-
+function SimTree(Ne::Function, sampletimes::Array{Float64}, p...
+	;tmrcaguess::Union{Nothing,Float64}=nothing,  algorithm=ALGO_MARKOV)::SimTree
 	@assert algorithm in [ALGO_STATIONARY, ALGO_MARKOV]
+	tmrcaguess = isnothing(tmrcaguess) ? Ne(0.0,p...) : tmrcaguess
 	if algorithm == ALGO_MARKOV
 		return _sim_markov(Ne, sampletimes, tmrcaguess, p...)
 	end
+	if algorithm == ALGO_STATIONARY 
+		return _sim_stationary( Ne, sampletimes, tmrcaguess, p... )
+	end
+end
+
+function _sim_stationary( Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64 , p... )
 	print( """Simulating coalescent, sample size =$(length(sampletimes))
 Initial guess of time to most recent common ancestor (before most recent sample): $(tmrcaguess)
 Deterministic approximation to coalescent time distribution
 User-specified Ne(t) function 
 """)
+	@warn "Entering development code"
 	n = length( sampletimes )
 	@assert n > 1
 	@assert tmrcaguess > 0. 
@@ -305,7 +334,7 @@ User-specified Ne(t) function
 	# @show pars 
 	function lttode!(du, u, p, t) 
 		# println( "lttode $(p)" )
-		N = Ne(t, pars) 
+		N = Ne(t, p...) 
 		du[1] = -u[1]*(u[1]-1.) / (2N)
 		du[2] = -du[1] 
 	end
@@ -345,7 +374,7 @@ User-specified Ne(t) function
 		afin = s.u[end][1]
 		tfin = s.t[end]*1.5
 	end
-	@show sampadds 
+	@show u
 
 	cointerp = linear_interpolation( sort!([ uu[2] for uu in u ] ./ float(n-1)) , taxis )
 	g() = sort!( cointerp.( rand(n-1))  )
@@ -379,7 +408,7 @@ User-specified Ne(t) function
 	tr = SimTree( events )
 	tr
 end
-
+#= 
 """
     SimTree(Ne::Float64, n::Int64, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
 
@@ -405,10 +434,10 @@ function SimTree(Ne::Float64, n::Int64, tmrcaguess::Float64, p... ; algorithm=AL
 	 , p...
 	 ; algorithm
 	)
-end
+end =#
 
 """
-    SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+    SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, p...; algorithm=ALGO_MARKOV)::SimTree
 
 Simulate a coalescent tree with constant Ne and flexible sampling times.
 
@@ -424,18 +453,17 @@ Simulate a coalescent tree with constant Ne and flexible sampling times.
 # Returns
 - `SimTree`: The simulated coalescent tree
 """
-function SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, p... ; algorithm=ALGO_STATIONARY)::SimTree
+function SimTree(Ne::Float64, sampletimes::Array{Float64}, p... ;  tmrcaguess::Union{Nothing,Float64}=nothing, algorithm=ALGO_MARKOV)::SimTree
 	_Ne(t,p...) = Ne
 	SimTree( _Ne
 	 , sampletimes 
-	 , tmrcaguess
 	 , p...
- 	 ; algorithm
+ 	 ; tmrcaguess,  algorithm
 	)
 end
 
 """
-    SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+    SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p...; algorithm=ALGO_MARKOV)::SimTree
 
 Simulate a coalescent tree with flexible Ne function and n samples at time 0.
 
@@ -446,17 +474,18 @@ Simulate a coalescent tree with flexible Ne function and n samples at time 0.
 - `p...`: Additional parameters for the Ne function
 
 # Keywords
-- `algorithm::String = ALGO_STATIONARY`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
+- `algorithm::String = ALGO_MARKOV`: Algorithm to use for simulation (ALGO_STATIONARY or ALGO_MARKOV)
 
 # Returns
 - `SimTree`: The simulated coalescent tree
 """
-function SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p... ; algorithm=ALGO_STATIONARY)::SimTree
+function SimTree(Ne::Function, n::Int64,  p... ; tmrcaguess::Union{Nothing,Float64}=nothing, algorithm=ALGO_MARKOV)::SimTree
+	tmrcaguess = isnothing(tmrcaguess) ? Ne(0.0,p...) : tmrcaguess 	
 	SimTree( Ne
 	 , repeat( [0.], n) 
-	 , tmrcaguess
 	 , p...
- 	 ; algorithm
+ 	 ; tmrcaguess
+ 	 , algorithm
 	)
 end
 

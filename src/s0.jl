@@ -36,7 +36,11 @@ function SimTree(events::Array{Event}, model::ModelFGY; computedescendants = fal
 	nCo = sum( [e.type == COALESCENT for e in events ] )
 	mrcaheight = events[end].height 
 	epsilonheight = mrcaheight - events[end-1].height 
-	for i in 1:(nNode - nCo ) # add coalescent events if tree is not complete (single mrca)
+	cotoadd = (nNode - nCo )
+	if cotoadd > 0 
+		@warn "Coalescent process did not reach a common ancestor. Adding $(cotoadd) nodes. "
+	end
+	for i in 1:cotoadd # add coalescent events if tree is not complete (single mrca)
 		push!( events, Event(COALESCENT, mrcaheight + epsilonheight*i) )
 	end
 	
