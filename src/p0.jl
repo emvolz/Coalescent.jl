@@ -288,7 +288,7 @@ end
 
 
 """
-    SimTree(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64, p...; algorithm=ALGO_STATIONARY)::SimTree
+    SimTree(Ne::Function, sampletimes::Array{Float64}, p...; tmrcaguess::Union{Nothing,Float64}=nothing, algorithm=ALGO_STATIONARY)::SimTree
 
 Simulate a coalescent tree with flexible Ne function and sampling times.
 
@@ -437,7 +437,7 @@ function SimTree(Ne::Float64, n::Int64, tmrcaguess::Float64, p... ; algorithm=AL
 end =#
 
 """
-    SimTree(Ne::Float64, sampletimes::Array{Float64}, tmrcaguess::Float64, p...; algorithm=ALGO_MARKOV)::SimTree
+    SimTree(Ne::Float64, sampletimes::Array{Float64}, p...;  tmrcaguess::Union{Nothing,Float64}=nothing, algorithm=ALGO_MARKOV)::SimTree
 
 Simulate a coalescent tree with constant Ne and flexible sampling times.
 
@@ -463,7 +463,7 @@ function SimTree(Ne::Float64, sampletimes::Array{Float64}, p... ;  tmrcaguess::U
 end
 
 """
-    SimTree(Ne::Function, n::Int64, tmrcaguess::Float64, p...; algorithm=ALGO_MARKOV)::SimTree
+    SimTree(Ne::Function, n::Int64,p...; tmrcaguess::Union{Nothing,Float64}=nothing, algorithm=ALGO_MARKOV)::SimTree
 
 Simulate a coalescent tree with flexible Ne function and n samples at time 0.
 
