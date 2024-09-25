@@ -10,3 +10,6 @@ makedocs(
 	# 	"Home" => "README.jmd",  
 	# ]
 )
+
+
+deploydocs( repo = "github.com/emvolz/Coalescent.jl.git" )
