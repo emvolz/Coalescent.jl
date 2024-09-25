@@ -8,17 +8,17 @@ using Interpolations
 using Plots
 using Debugger
 
-"""
-    Event
-
-Represents an event in the coalescent process.
-
-# Fields
-- `type::Int`: Type of the event (SAMPLE, COALESCENT, MIGRATION, or RECOMBINATION)
-- `height::Float64`: Time of the event
-- `source::Union{Nothing,String}`: Source deme of the event (if applicable)
-- `sink::Union{Nothing,String}`: Sink deme of the event (if applicable)
-"""
+# """
+#     Event
+#
+# Represents an event in the coalescent process.
+#
+# # Fields
+# - `type::Int`: Type of the event (SAMPLE, COALESCENT, MIGRATION, or RECOMBINATION)
+# - `height::Float64`: Time of the event
+# - `source::Union{Nothing,String}`: Source deme of the event (if applicable)
+# - `sink::Union{Nothing,String}`: Sink deme of the event (if applicable)
+# """
 mutable struct Event
 	type::Int
 	height::Float64
@@ -161,20 +161,20 @@ function SimTree(events::Array{Event})::SimTree
 end
 
 
-"""
-    _sim_markov(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64, p...)::SimTree
-
-Simulate a coalescent tree using a Markovian coalescent algorithm.
-
-# Arguments
-- `Ne::Function`: Effective population size function
-- `sampletimes::Array{Float64}`: Array of sample times
-- `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
-- `p...`: Additional parameters for the Ne function
-
-# Returns
-- `SimTree`: The simulated coalescent tree
-"""
+# """
+#     _sim_markov(Ne::Function, sampletimes::Array{Float64}, tmrcaguess::Float64, p...)::SimTree
+#
+# Simulate a coalescent tree using a Markovian coalescent algorithm.
+#
+# # Arguments
+# - `Ne::Function`: Effective population size function
+# - `sampletimes::Array{Float64}`: Array of sample times
+# - `tmrcaguess::Float64`: Initial guess for the time to most recent common ancestor
+# - `p...`: Additional parameters for the Ne function
+#
+# # Returns
+# - `SimTree`: The simulated coalescent tree
+# """
 function _sim_markov(Ne::Function
 		     , sampletimes::Array{Float64}
 		     , tmrcaguess::Float64

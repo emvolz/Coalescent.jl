@@ -13,17 +13,17 @@ const RXN_MIG = 1
 const RXN_DEATH = 2 
 const RXN_DYNVAR = 3 
 
-"""
-	Reaction
-
-Represents a reaction in the structured FGY model.
-
-# Fields
-- `source::String`: Source deme or variable of the reaction
-- `recipient::Union{Nothing,String}`: Recipient deme or variable of the reaction (if applicable)
-- `type::Int`: Type of reaction (RXN_BIRTH, RXN_MIG, RXN_DEATH, or RXN_DYNVAR)
-- `expr::Expr`: Expression defining the reaction rate
-"""
+# """
+# 	Reaction
+#
+# Represents a reaction in the structured FGY model.
+#
+# # Fields
+# - `source::String`: Source deme or variable of the reaction
+# - `recipient::Union{Nothing,String}`: Recipient deme or variable of the reaction (if applicable)
+# - `type::Int`: Type of reaction (RXN_BIRTH, RXN_MIG, RXN_DEATH, or RXN_DYNVAR)
+# - `expr::Expr`: Expression defining the reaction rate
+# """
 mutable struct Reaction
 	source::String
 	recipient::Union{Nothing,String}
@@ -93,11 +93,6 @@ mutable struct ModelFGY
 	helperexprs::Union{Nothing,Array{Expr}}
 end
 
-"""
-	Base.show(io::IO, x::ModelFGY)
-
-Custom display function for ModelFGY objects.
-"""
 function Base.show(io::IO, x::ModelFGY)
 	print("""
 Compartmental model with $(x.numberdemes) demes, 
@@ -287,18 +282,18 @@ function ModelFGY(; confstr::String)
 	)
 end
 
-"""
-	_derive_deme_ode(deme::String, mod::ModelFGY)
-
-Derive the ODE for a specific deme in the model.
-
-# Arguments
-- `deme::String`: Name of the deme
-- `mod::ModelFGY`: The model
-
-# Returns
-- `Expr`: The derived ODE expression for the deme
-"""
+# """
+# 	_derive_deme_ode(deme::String, mod::ModelFGY)
+#
+# Derive the ODE for a specific deme in the model.
+#
+# # Arguments
+# - `deme::String`: Name of the deme
+# - `mod::ModelFGY`: The model
+#
+# # Returns
+# - `Expr`: The derived ODE expression for the deme
+# """
 function _derive_deme_ode(deme::String, mod::ModelFGY)
 	inbrxn = [r.expr for r in mod.birthrxn  if r.recipient==deme]
 	inbrxn = length(inbrxn) == 0 ? [:(0)] : inbrxn 

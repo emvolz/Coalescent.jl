@@ -30,19 +30,19 @@ using Plots
 using StatsBase
 using Debugger
 
-"Reaction types defining rates of genealogical events." 
+# "Reaction types defining rates of genealogical events." 
 const RXN_BIRTH = 0 
 const RXN_MIG = 1 
 const RXN_DEATH = 2 
 const RXN_DYNVAR = 3 
 
-"Events in a coalescent process." 
+# "Events in a coalescent process." 
 const SAMPLE = 0
 const COALESCENT = 1
 const MIGRATION = 2
 const RECOMBINATION = 3
 
-"Alternative models of the coalescent distribution. "
+# "Alternative models of the coalescent distribution. "
 const ALGO_MARKOV = "markov"
 const ALGO_STATIONARY = "stationary" 
 

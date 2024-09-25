@@ -5,6 +5,10 @@
 ```@index
 ```
 
+```@docs
+Coalescent.Coalescent
+```
+
 ## Functions
 
 ```@docs
