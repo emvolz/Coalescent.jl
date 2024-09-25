@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Introduction · Coalescent.jl</title><meta name="title" content="Introduction · Coalescent.jl"/><meta property="og:title" content="Introduction · Coalescent.jl"/><meta property="twitter:title" content="Introduction · Coalescent.jl"/><meta name="description" content="Documentation for Coalescent.jl."/><meta property="og:description" content="Documentation for Coalescent.jl."/><meta property="twitter:description" content="Documentation for Coalescent.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>Coalescent.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Introduction</a><ul class="internal"><li><a class="tocitem" href="#A-simple-coalescent-simulation"><span>A simple coalescent simulation</span></a></li><li><a class="tocitem" href="#Variable-Population-Size"><span>Variable Population Size</span></a></li><li><a class="tocitem" href="#Parametric-population-size-functions"><span>Parametric population size functions</span></a></li><li><a class="tocitem" href="#Logistic-Growth"><span>Logistic Growth</span></a></li><li><a class="tocitem" href="#Population-Bottleneck"><span>Population Bottleneck</span></a></li><li><a class="tocitem" href="#Variable-Sampling-Times"><span>Variable Sampling Times</span></a></li><li><a class="tocitem" href="#SIR-Model"><span>SIR Model</span></a></li><li class="toplevel"><a class="tocitem" href="#Models-with-population-structure"><span>Models with population structure</span></a></li><li><a class="tocitem" href="#Island-Model"><span>Island Model</span></a></li><li><a class="tocitem" href="#Imbalanced-Migration"><span>Imbalanced Migration</span></a></li><li><a class="tocitem" href="#A-note-about-initial-conditions"><span>A note about initial conditions</span></a></li><li><a class="tocitem" href="#SEIR-Model"><span>SEIR Model</span></a></li><li><a class="tocitem" href="#Computing-Distances"><span>Computing Distances</span></a></li></ul></li><li><a class="tocitem" href="../">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Introduction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Introduction</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/emvolz/Coalescent.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/emvolz/Coalescent.jl/blob/main/README.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p><img src="../figures/coalescentlogo.png" alt/></p><h1 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h1><p>Coalescent.jl is a package for simulation of <a href="https://en.wikipedia.org/wiki/Coalescent_theory">coalescent</a> genealogical histories with a flexible markup language for conditioning on demographic history. This package can be used as a building-block in pipelines for <a href="https://en.wikipedia.org/wiki/Approximate_Bayesian_computation">simulation-based inference</a> in population genetics research.  </p><p>The focus of this package is on support for simulation under demographic histories featuring nonlinear dynamics, potentially complex state spaces, and complex sampling over time. This makes the package especially relevent for studies of pathogen evolution, but other applications are possible. A design goal of Coalescent.jl is to enable fast and memory-efficient simulation of very large coalescent trees. </p><p>Other software: </p><ul><li><a href="https://tskit.dev/software/msprime.html">msprime</a> A flexible and highly optimised coalescent simulator in Python, but does not currently support complex nonlinear models </li><li><a href="https://github.com/emvolz-phylodynamics/phydynR">phydynR</a> This is an R package which supports similar specification of demographic processes, but is substantially slower  </li><li><a href="https://cran.r-project.org/web/packages/TiPS/index.html">TiPS</a> A recently-developed R package supporting a similar specification of demographic processes </li><li><a href="https://tgvaughan.github.io/MASTER/">MASTER</a> A BEAST2 add-on focused on stochastic demographic processes </li></ul><p>Relative to <a href>msprime</a>, some major features are currently missing: </p><ul><li>Does not currently support recombination (ancestral recombination graphs) </li><li>Detailed models of evolution, which currently must be added on manually </li></ul><h2 id="A-simple-coalescent-simulation"><a class="docs-heading-anchor" href="#A-simple-coalescent-simulation">A simple coalescent simulation</a><a id="A-simple-coalescent-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#A-simple-coalescent-simulation" title="Permalink"></a></h2><p>First, let&#39;s load the necessary packages:</p><pre><code class="language-julia hljs">using Coalescent
+using Phylo # For plotting trees 
+using Plots # For plotting demographic trajectories
+using Distributions # For random number generation</code></pre><p>Let&#39;s start with a simple coalescent simulation with a constant population size=10 (first argument) and 10 samples:</p><pre><code class="language-julia hljs">tr = SimTree(10.0, 10)
+@show tr 
+tonewick(tr)</code></pre><pre><code class="nohighlight hljs">Simulated coalescent tree with 10 tips and 9 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.1&quot;, &quot;t.2&quot;, &quot;t.3&quot;, &quot;t.4&quot;, &quot;t.5&quot;, &quot;t.6&quot;, &quot;t.7&quot;, &quot;t
+.8&quot;, &quot;t.9&quot;, &quot;t.10&quot;] ...
+
+Rooted; includes branch lengths
+tr = 
+&quot;((((t.4:2.520073107400519,t.5:2.520073107400519):1.3174591901714678,(t.9:1
+.266569944939787,(t.10:0.36999246585678014,(t.1:0.36707169076260365,t.7:0.3
+6707169076260365):0.0029207750941764865):0.8965774790830068):2.570962352632
+2):2.013564887352403,(t.2:1.6115809554183689,t.8:1.6115809554183689):4.2395
+16229506021):5.320626273601084,(t.3:5.617177202174617,t.6:5.617177202174617
+):5.554546256350856):0.0;&quot;</code></pre><p><code>tonewick</code> converts the tree to a portable newick string for loading into other software or packages. </p><h2 id="Variable-Population-Size"><a class="docs-heading-anchor" href="#Variable-Population-Size">Variable Population Size</a><a id="Variable-Population-Size-1"></a><a class="docs-heading-anchor-permalink" href="#Variable-Population-Size" title="Permalink"></a></h2><p>Now, let&#39;s simulate a coalescent with a variable population size:</p><pre><code class="language-julia hljs">tr = SimTree((t,p...)-&gt;exp(-t), 10)</code></pre><pre><code class="nohighlight hljs">Simulating coalescent, sample size =10
+Initial guess of time to most recent common ancestor (before most recent sa
+mple): 1.0
+Markovian coalescent algorithm
+User-specified Ne(t) function 
+Simulated coalescent tree with 10 tips and 9 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.1&quot;, &quot;t.2&quot;, &quot;t.3&quot;, &quot;t.4&quot;, &quot;t.5&quot;, &quot;t.6&quot;, &quot;t.7&quot;, &quot;t
+.8&quot;, &quot;t.9&quot;, &quot;t.10&quot;] ...
+
+Rooted; includes branch lengths</code></pre><p>This creates a tree where the population size increases exponentially over time. Note that in univariate models, the convention is for time to represent time <strong>before</strong> the most recent sample. Thus time zero always represents when the most recent sample was collected. </p><p>We can visualize the tree using <a href="https://github.com/EcoJulia/Phylo.jl">Phylo.jl</a> and [Plots.jl]:</p><pre><code class="language-julia hljs">tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><p><img src="../figures/README_4_1.png" alt/></p><h2 id="Parametric-population-size-functions"><a class="docs-heading-anchor" href="#Parametric-population-size-functions">Parametric population size functions</a><a id="Parametric-population-size-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Parametric-population-size-functions" title="Permalink"></a></h2><p>Suppose we wish to specify the growth rate and initial (most recent) population size in the exponential growth model. </p><pre><code class="language-julia hljs">tr = SimTree((t,Ne0,λ) -&gt; Ne0*exp(-λ*t), 10, 2_000, 0.25)
+@show tr 
+tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><pre><code class="nohighlight hljs">Simulating coalescent, sample size =10
+Initial guess of time to most recent common ancestor (before most recent sa
+mple): 2000.0
+Markovian coalescent algorithm
+User-specified Ne(t) function 
+Simulated coalescent tree with 10 tips and 9 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.1&quot;, &quot;t.2&quot;, &quot;t.3&quot;, &quot;t.4&quot;, &quot;t.5&quot;, &quot;t.6&quot;, &quot;t.7&quot;, &quot;t
+.8&quot;, &quot;t.9&quot;, &quot;t.10&quot;] ...
+
+Rooted; includes branch lengths
+tr =</code></pre><p><img src="../figures/README_5_1.png" alt/></p><p>This simulates a population that starts at size Ne0 and declines exponentially with rate λ. Arguments to <code>SimTree</code> folllowing the sample size (10) are passed as arguments to the effective population size function.  So in this case, Ne0=2000 and λ=0.25. </p><h2 id="Logistic-Growth"><a class="docs-heading-anchor" href="#Logistic-Growth">Logistic Growth</a><a id="Logistic-Growth-1"></a><a class="docs-heading-anchor-permalink" href="#Logistic-Growth" title="Permalink"></a></h2><p>Here is a tree simulated under logistic growth and carrying capacity K=100:</p><pre><code class="language-julia hljs">nefunc(t,K) = 10 + K*(1/(1+exp(-(t-5))))
+plot(t-&gt;nefunc(t,100), 0, 10)</code></pre><p><img src="../figures/README_6_1.png" alt/></p><p>These simulations are pretty fast, although for unstructured models, there are faster alternatives. This is how long it takes to simulate a tree with 10 thousand samples and the logistic growth model: </p><pre><code class="language-julia hljs">@time SimTree(nefunc, 10_000, 100)</code></pre><pre><code class="nohighlight hljs">Simulating coalescent, sample size =10000
+Initial guess of time to most recent common ancestor (before most recent sa
+mple): 10.669285092428485
+Markovian coalescent algorithm
+User-specified Ne(t) function 
+  0.600311 seconds (12.49 M allocations: 335.358 MiB, 10.20% gc time, 27.40
+% compilation time)
+Simulated coalescent tree with 10000 tips and 9999 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.1&quot;, &quot;t.2&quot;, &quot;t.3&quot;, &quot;t.4&quot;, &quot;t.5&quot;, &quot;t.6&quot;, &quot;t.7&quot;, &quot;t
+.8&quot;, &quot;t.9&quot;, &quot;t.10&quot;] ...
+
+Rooted; includes branch lengths</code></pre><h2 id="Population-Bottleneck"><a class="docs-heading-anchor" href="#Population-Bottleneck">Population Bottleneck</a><a id="Population-Bottleneck-1"></a><a class="docs-heading-anchor-permalink" href="#Population-Bottleneck" title="Permalink"></a></h2><p>We can simulate a population that experiences a sudden bottleneck. In this case, the effective population size drops from 100 to 1 at time 5. </p><pre><code class="language-julia hljs">nefunc(t, Ne1,Ne2,T) = t&lt;T ? Ne1 : Ne2
+plot(t-&gt;nefunc(t, 10.0, 1.0, 5.0), 0, 10)</code></pre><p><img src="../figures/README_8_1.png" alt/></p><pre><code class="language-julia hljs">tr = SimTree(nefunc, 25, 100.0, 1.0, 5.0)
+@show tr 
+tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><pre><code class="nohighlight hljs">Simulating coalescent, sample size =25
+Initial guess of time to most recent common ancestor (before most recent sa
+mple): 100.0
+Markovian coalescent algorithm
+User-specified Ne(t) function 
+Simulated coalescent tree with 25 tips and 24 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.1&quot;, &quot;t.2&quot;, &quot;t.3&quot;, &quot;t.4&quot;, &quot;t.5&quot;, &quot;t.6&quot;, &quot;t.7&quot;, &quot;t
+.8&quot;, &quot;t.9&quot;, &quot;t.10&quot;] ...
+
+Rooted; includes branch lengths
+tr =</code></pre><p><img src="../figures/README_9_1.png" alt/></p><h2 id="Variable-Sampling-Times"><a class="docs-heading-anchor" href="#Variable-Sampling-Times">Variable Sampling Times</a><a id="Variable-Sampling-Times-1"></a><a class="docs-heading-anchor-permalink" href="#Variable-Sampling-Times" title="Permalink"></a></h2><p>We can also simulate coalescent trees with samples taken at different times:</p><pre><code class="language-julia hljs">tr = SimTree(1.0, rand(10))
+tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><pre><code class="nohighlight hljs">Simulating coalescent, sample size =10
+Initial guess of time to most recent common ancestor (before most recent sa
+mple): 1.0
+Markovian coalescent algorithm
+User-specified Ne(t) function</code></pre><p><img src="../figures/README_10_1.png" alt/></p><p>The first argument is Ne, and the second argument is a vector sample times, which in this case were 10 uniform random numbers. </p><h2 id="SIR-Model"><a class="docs-heading-anchor" href="#SIR-Model">SIR Model</a><a id="SIR-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Model" title="Permalink"></a></h2><p>The specialty of Coalescent.jl is the simulation of trees under non-linear dynamics.  We&#39;ll demonstrate this with the SIR (Susceptible-Infected-Recovered) epidemiological model which is specified by a system of ordinary differential equations. In this case, and in structured models (demonstrated later), there are some important differences regarding how population dynamics are specified: </p><ul><li>Time now represents the conventional forward direction. This is different than how time is handled in most coalescent software packages (i.e. <a href="https://tskit.dev/software/msprime.html">msprime</a>), but is necessary to accomodate nonlinear models that are difficult or impossible to solve in retrospective time. </li><li>Rather than defining the dynamics with a julia expression, we will define the model in YAML format, usually kept in a separate file, but here we will write the YAML as multiline strings. </li></ul><pre><code class="language-julia hljs">sir_yaml = &quot;&quot;&quot;
+modelname: example_sir
+births:
+  - source: I # Infections generate new infections at this rate 
+    recipient: I 
+    rate: β*S*I/N
+
+deaths:
+  - deme: I # Representing recovery of infected individuals
+    rate: γ*I
+
+parameters:
+  - name: β # transmission rate
+    value: 3.0
+  - name: γ # recovery rate 
+    value: 2.0
+
+dynamic_variables:
+  - name: I
+    initial_value: 1.0
+  - name: S
+    initial_value: 1e5
+    ode: -β*S*I/N
+  - name: R
+    initial_value: 0.0
+    ode: γ*I
+
+helpers: # Other variables that can make it easier to define the ODEs 
+  - name: N
+    definition: S+I+R
+
+time: 
+  initial: 1.0
+  final: 20.0 
+&quot;&quot;&quot;;</code></pre><p>Note that this model schema follows the conventions of so-called <a href="https://github.com/mrc-ide/PhyDyn/wiki/Population-Model">FGY models</a>. Specifically: </p><ul><li>The genealogical process is defined by several state &amp; time dependant rates that can influence the history of a lineage: Births, Migrations (examples in later sections) and Deaths</li><li>Some dynamical variables correspond to a population size influencing the coalescent rate (&quot;I&quot; in this case representing the number of infections), but others represent the state of the system which must be known to determine birth, migration and death rates (&quot;S&quot; and &quot;R&quot;). We do not decompose dynamics of these variables into birth and death rates, but we must specify an ODE giving the time derivative of these variables. </li></ul><p>Now we integrate the model and plot a trajectory: </p><pre><code class="language-julia hljs">sirmodel = ModelFGY(confstr = sir_yaml)
+@show sirmodel 
+soln_sirmodel = solveodes(sirmodel)
+plot(soln_sirmodel)</code></pre><pre><code class="nohighlight hljs">Compartmental model with 1 demes, 
+and 2 other dynamic variables.
+
+Dynamic variables: [&quot;I&quot;], [&quot;S&quot;, &quot;R&quot;]
+
+Parameters: 
+2×2 DataFrame
+ Row │ parameter  value
+     │ String     Float64
+─────┼────────────────────
+   1 │ γ              2.0
+   2 │ β              3.0
+
+Initial conditions: Dict{String, Number}(&quot;I&quot; =&gt; 1.0, &quot;S&quot; =&gt; 100000.0, &quot;R&quot; =
+&gt; 0.0)
+3×2 DataFrame
+ Row │ variable  initial value
+     │ String    Float64
+─────┼─────────────────────────
+   1 │ I                   1.0
+   2 │ S              100000.0
+   3 │ R                   0.0
+
+Initial time: 1.0
+
+Final time: 20.0
+
+sirmodel =</code></pre><p><img src="../figures/README_12_1.png" alt/></p><p>Now let&#39;s define a sampling scheme. There are several ways to do this.  Samples can be defined a particular time and a particular deme (see structured models).  Or julia code can be provided that generates a vector of sample times. Or, a table can be loaded from a file which contains the time and deme of each sample. These can co-exist within the same configuration. Here is an example: </p><pre><code class="language-julia hljs">sirsample_yaml = &quot;&quot;&quot;
+sample: 
+  # Take a single sample from deme I at time 10
+  - deme: I
+    time: 15.0 
+    size: 10
+  # Executable Julia code to define sample times. Takes 5 samples from deme I at equal intervals between times 5 and 10. 
+  - deme: I
+    time: range( 5.0, 10.0, 5 )
+  # Another example of parsing and executing Julia code; sampling 5 times from a Normal distribution
+  - deme: I
+    time: rand( Normal(10), 5 )
+  # [NOT RUN] Read sample time information from a table
+  #- table: ./sampletimes.csv # A table with columns &lt;sample_time&gt;, &lt;deme&gt;
+&quot;&quot;&quot;
+
+sirsamp = SampleConfiguration(confstr = sirsample_yaml);</code></pre><p>Now simulate the tree with the model and sample configuration: </p><pre><code class="language-julia hljs">tr = SimTree(sirmodel, sirsamp)
+tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><p><img src="../figures/README_14_1.png" alt/></p><h1 id="Models-with-population-structure"><a class="docs-heading-anchor" href="#Models-with-population-structure">Models with population structure</a><a id="Models-with-population-structure-1"></a><a class="docs-heading-anchor-permalink" href="#Models-with-population-structure" title="Permalink"></a></h1><p>It is straightforward to specify a model with population structure, nonlinear dynamics, and heterogeneous sampling over time using the FGY yaml format. </p><h2 id="Island-Model"><a class="docs-heading-anchor" href="#Island-Model">Island Model</a><a id="Island-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Island-Model" title="Permalink"></a></h2><p>First, let&#39;s reproduce the classic <a href="https://dyerlab.github.io/applied_population_genetics/population-models.html#the-island-model">island model</a> with 2 demes, a constant migration rate (μ) between demes, and a constant population size in each deme.</p><p>The population size is constant because we specify birth rates and death rates to be the same at a per-capita rate γ.  This rate also sets the timescale of the process (one generation = 1/γ).  </p><pre><code class="language-julia hljs">islandmodel_yaml = &quot;&quot;&quot;
+modelname: exampleisland
+births:
+  - source: A
+    recipient: A
+    rate: γ * A
+  - source: B
+    recipient: B
+    rate: γ * B
+migrations:
+  - source: A 
+    recipient: B 
+    rate: μ * A 
+  - source: B 
+    recipient: A 
+    rate: μ * B 
+deaths:
+  - deme: A
+    rate: γ * A
+  - deme: B
+    rate: γ * B
+dynamic_variables:
+  - name: A
+    initial_value: 100.0
+  - name: B
+    initial_value: 100.0
+time:
+  initial: 0
+  final: 300
+parameters:
+  - name: γ
+    value: 1.0
+  - name: μ
+    value: 0.05
+&quot;&quot;&quot;
+
+# Homochronous sampling from both demes: 
+islandsample_yaml = &quot;&quot;&quot; 
+sample:
+  - deme: A 
+    time: 300
+    size: 20 
+  - deme: B 
+    time: 300
+    size: 20 
+&quot;&quot;&quot;
+
+islandmodel = ModelFGY(confstr=islandmodel_yaml)
+@show islandmodel 
+
+# Simulate the tree 
+tr = SimTree(
+    islandmodel,
+    SampleConfiguration(confstr=islandsample_yaml)
+)
+@show tr 
+# Plot the tree: 
+tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><pre><code class="nohighlight hljs">Compartmental model with 2 demes, 
+and 0 other dynamic variables.
+
+Dynamic variables: [&quot;A&quot;, &quot;B&quot;], String[]
+
+Parameters: 
+2×2 DataFrame
+ Row │ parameter  value
+     │ String     Float64
+─────┼────────────────────
+   1 │ γ             1.0
+   2 │ μ             0.05
+
+Initial conditions: Dict{String, Number}(&quot;B&quot; =&gt; 100.0, &quot;A&quot; =&gt; 100.0)
+2×2 DataFrame
+ Row │ variable  initial value
+     │ String    Float64
+─────┼─────────────────────────
+   1 │ B                 100.0
+   2 │ A                 100.0
+
+Initial time: 0.0
+
+Final time: 300.0
+
+islandmodel = 
+Simulated coalescent tree with 40 tips and 39 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.A.1&quot;, &quot;t.A.2&quot;, &quot;t.A.3&quot;, &quot;t.A.4&quot;, &quot;t.A.5&quot;, &quot;t.A.6
+&quot;, &quot;t.A.7&quot;, &quot;t.A.8&quot;, &quot;t.A.9&quot;, &quot;t.A.10&quot;] ...
+
+Rooted; includes branch lengths
+tr =</code></pre><p><img src="../figures/README_15_1.png" alt/></p><p>Note that the deme of sampling is embedded in the tip label, which makes it easy to extract in other software. The deme can also be accessed programmatically in <code>tr.demes</code>.</p><h2 id="Imbalanced-Migration"><a class="docs-heading-anchor" href="#Imbalanced-Migration">Imbalanced Migration</a><a id="Imbalanced-Migration-1"></a><a class="docs-heading-anchor-permalink" href="#Imbalanced-Migration" title="Permalink"></a></h2><p>The way migration is handled in FGY models is quite different than most coalescent frameworks. The given rate is always a &quot;per-capita&quot; rate in a forwards time direction.  In contrast, most coalescent frameworks specify a migration rate &quot;per-lineage&quot; in a reverse time direction. To show the difference, consider this variation on the island model which is the same as above except that deme B starts at size 1 and deme A at size 500.  </p><pre><code class="language-julia hljs">twodememigration_yaml = &quot;&quot;&quot;
+modelname: examplemigration
+births:
+  - source: A
+    recipient: A
+    rate: γ * A
+  - source: B
+    recipient: B
+    rate: γ * B
+migrations:
+  - source: A 
+    recipient: B 
+    rate: μ * A
+  - source: B 
+    recipient: A 
+    rate: μ * B
+deaths:
+  - deme: A
+    rate: γ * A
+  - deme: B
+    rate: γ * B
+dynamic_variables:
+  - name: A
+    initial_value: 500.0
+  - name: B
+    initial_value: 1.0
+time:
+  initial: 0
+  final: 50
+parameters:
+  - name: γ
+    value: 1.0
+  - name: μ
+    value: 0.05
+&quot;&quot;&quot;
+
+twodememodel = ModelFGY(confstr=twodememigration_yaml)
+solntwodeme = solveodes(twodememodel) 
+plot(solntwodeme)</code></pre><p><img src="../figures/README_16_1.png" alt/></p><p>Because μ is a forward-time per-capita rate, the initial rate of migrations from A to B is 500μ while in the opposite direction it is only 1μ. Thus the populations converge in size over time until the total rate of migrations is the same in both directions. </p><p>If you want to use the per-lineage instead per-capita migration rate, it is possible to deduce the &quot;per-lineage&quot; retrospective rate of migrations. For example in this model, the per-lineage rate from B to A is μA/B and from A to B it is μB/A. See <a href="https://doi.org/10.1534/genetics.111.134627">this paper</a> for details.  </p><h2 id="A-note-about-initial-conditions"><a class="docs-heading-anchor" href="#A-note-about-initial-conditions">A note about initial conditions</a><a id="A-note-about-initial-conditions-1"></a><a class="docs-heading-anchor-permalink" href="#A-note-about-initial-conditions" title="Permalink"></a></h2><p>A disadvantage of the FGY model format is that the genealogical process is conditioned on a demographic history, and there is no guarantee that the process will coalesce to a single MRCA by the initial time of the simulation. For most applications, it is desired to simulate until this MRCA is reached.  Consider the previous island model and this sampling scheme: </p><pre><code class="language-julia hljs">earlyislandsample_yaml = &quot;&quot;&quot; 
+sample:
+  - deme: A 
+    time: 1
+    size: 20 
+  - deme: B 
+    time: 1
+    size: 20 
+&quot;&quot;&quot;;</code></pre><p>In this case, all of the samples are collected at time 1 (after the initial time zero), so that there is not time for the process to coalesce. In this case, the simulator will raise a warning and add branches until a MRCA is found based on the distribution of events up to time zero. This is for convenience only, and branches before time zero should not be used for subsequent analysis: </p><pre><code class="language-julia hljs">julia&gt; SimTree(
+           ModelFGY(confstr=islandmodel_yaml),
+           SampleConfiguration(confstr=earlyislandsample_yaml)
+       )
+Simulated coalescent tree with 40 tips and 39 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.A.1&quot;, &quot;t.A.2&quot;, &quot;t.A.3&quot;, &quot;t.A.4&quot;, &quot;t.A.5&quot;, &quot;t.A.6&quot;, &quot;t.A.7&quot;, &quot;t.A.8&quot;, &quot;t.A.9&quot;, &quot;t.A.10&quot;] ...
+
+Rooted; includes branch lengths
+</code></pre><pre><code class="nohighlight hljs">┌ Warning: Coalescent process did not reach a common ancestor. Adding 34 nodes. 
+└ @ Coalescent ~/.julia/packages/Coalescent/kfJsL/src/s0.jl:41</code></pre><p>If you get this warning, it will likely be important for your application to revise the model to begin simulation from an earlier time point. </p><h2 id="SEIR-Model"><a class="docs-heading-anchor" href="#SEIR-Model">SEIR Model</a><a id="SEIR-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SEIR-Model" title="Permalink"></a></h2><p>Finally, let&#39;s simulate a coalescent tree based on the <a href="https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology">SEIR</a> (Susceptible-Exposed-Infected-Recovered) model which will illustrate population structure, nonlinear dynamics, and heterochronous sampling:</p><pre><code class="language-julia hljs">seir_yaml = &quot;&quot;&quot;
+modelname: example_sir
+births:
+  - source: I
+    recipient: E
+    rate: β*S*I/N
+migrations:
+  - source: E 
+    recipient: I 
+    rate: γ₁ * E 
+deaths:
+  - deme: I
+    rate: γ₂ * I
+parameters:
+  - name: β 
+    value: 6.0
+  - name: γ₁
+    value: 1.0
+  - name: γ₂
+    value: 1.0
+dynamic_variables:
+  - name: E
+    initial_value: 0.1 
+  - name: I
+    initial_value: 0.0
+  - name: S
+    initial_value: 1e3
+    ode: -β*S*I/N
+  - name: R
+    initial_value: 0.0
+    ode: γ*I
+helpers: 
+  - name: N
+    definition: S+E+I+R
+time: 
+  initial: 0.0
+  final: 10.0 
+&quot;&quot;&quot;
+
+seirmodel = ModelFGY(confstr = seir_yaml) 
+@show seirmodel
+soln_seirmodel = solveodes(seirmodel)
+plot(soln_seirmodel)
+
+seirsample_yaml = &quot;&quot;&quot;
+sample:
+  - deme: I
+    time: range(2.0, 10.0, 10)
+&quot;&quot;&quot;
+
+seirsamp = SampleConfiguration(confstr = seirsample_yaml) 
+tr = SimTree(seirmodel, seirsamp)
+@show tr 
+tonewick(tr) |&gt; parsenewick |&gt; plot</code></pre><pre><code class="nohighlight hljs">Compartmental model with 2 demes, 
+and 2 other dynamic variables.
+
+Dynamic variables: [&quot;I&quot;, &quot;E&quot;], [&quot;S&quot;, &quot;R&quot;]
+
+Parameters: 
+3×2 DataFrame
+ Row │ parameter  value
+     │ String     Float64
+─────┼────────────────────
+   1 │ γ₁             1.0
+   2 │ γ₂             1.0
+   3 │ β              6.0
+
+Initial conditions: Dict{String, Number}(&quot;I&quot; =&gt; 0.0, &quot;S&quot; =&gt; 1000.0, &quot;E&quot; =&gt; 
+0.1, &quot;R&quot; =&gt; 0.0)
+4×2 DataFrame
+ Row │ variable  initial value
+     │ String    Float64
+─────┼─────────────────────────
+   1 │ I                   0.0
+   2 │ S                1000.0
+   3 │ E                   0.1
+   4 │ R                   0.0
+
+Initial time: 0.0
+
+Final time: 10.0
+
+seirmodel = 
+Simulated coalescent tree with 10 tips and 9 internal nodes
+Tip labels:
+	Union{Nothing, String}[&quot;t.I.1&quot;, &quot;t.I.2&quot;, &quot;t.I.4&quot;, &quot;t.I.8&quot;, &quot;t.I.11&quot;, &quot;t.I.
+16&quot;, &quot;t.I.33&quot;, &quot;t.I.50&quot;, &quot;t.I.60&quot;, &quot;t.I.70&quot;] ...
+
+Rooted; includes branch lengths
+tr =</code></pre><p><img src="../figures/README_19_1.png" alt/></p><p>In this model, lineages are sampled from the &quot;I&quot; deme, representing for example microbial genomes collected from symptomatic infected individuals. Migration represents the progression of disease &quot;E&quot; to &quot;I&quot;. Deaths represent recovery of infected individuals. And &quot;I&quot; lineages generate new lineages in &quot;E&quot; (forwards time) according to a mass action model. </p><h2 id="Computing-Distances"><a class="docs-heading-anchor" href="#Computing-Distances">Computing Distances</a><a id="Computing-Distances-1"></a><a class="docs-heading-anchor-permalink" href="#Computing-Distances" title="Permalink"></a></h2><p>For some applications related to simulation-based inference, it may be better to work with a distance matrix rather than the tree. We can compute this matrix as follows:</p><pre><code class="language-julia hljs">tr = SimTree(seirmodel, seirsamp, computedescendants=true)
+# You can modify `tr.edgelength` to simulate various evolutionary models
+Coalescent.distancematrix(tr)</code></pre><pre><code class="nohighlight hljs">10×10 Matrix{Float64}:
+  0.0      14.9448   12.7552   …  8.09323  8.3108   8.72257  8.30531
+ 14.9448    0.0      13.167       9.61146  8.72257  6.75937  7.41642
+ 12.7552   13.167     0.0         7.42192  5.02444  6.94479  6.52753
+ 11.835    12.2781   10.0886      6.50165  5.64414  6.05591  5.63864
+ 10.1032   11.3892    9.19969     4.76983  4.75525  5.16702  4.74975
+  6.81885  10.5003    8.3108   …  3.64878  3.86636  4.27813  3.86086
+  8.09323   9.61146   7.42192     0.0      2.97747  3.38924  2.97197
+  8.3108    8.72257   5.02444     2.97747  0.0      2.50035  2.08309
+  8.72257   6.75937   6.94479     3.38924  2.50035  0.0      1.1942
+  8.30531   7.41642   6.52753     2.97197  2.08309  1.1942   0.0</code></pre><p>Note that the simulator must be called with <code>computedescendants=true</code> in this case which will add modestly to simulation time and substantially to memory usage.  If you wish to simulate an evolutionary model, so that for example distances represent substitutions per site, you can modify the branch lengths (<code>tr.edgelength</code>) before computing the distance matrix. For example, this would simulate a Jukes-Cantor model with substitution rate 0.001 and 10,000 nucleotides: </p><pre><code class="language-julia hljs">tr.edgelength .= [ Poisson(rate) |&gt; rand for rate in tr.edgelength*10_000*0.001  ]</code></pre><pre><code class="nohighlight hljs">18-element Vector{Union{Nothing, Float64}}:
+ 58.0
+  8.0
+  7.0
+ 33.0
+ 11.0
+  7.0
+  1.0
+ 30.0
+  6.0
+ 47.0
+  0.0
+  3.0
+  3.0
+ 59.0
+  5.0
+  5.0
+  2.0
+  2.0</code></pre><p>Future versions may streamline this simulation. </p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="../">Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Wednesday 25 September 2024 21:42">Wednesday 25 September 2024</span>. Using Julia version 1.10.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
