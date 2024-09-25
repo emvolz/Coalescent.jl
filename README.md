@@ -1,5 +1,7 @@
 ![](./figures/coalescentlogo.png)
 
+Detailed documentation: [https://emvolz.github.io/Coalescent.jl/dev/intro/](https://emvolz.github.io/Coalescent.jl/dev/intro/)
+
 # Introduction
 
 Coalescent.jl is a package for simulation of [coalescent](https://en.wikipedia.org/wiki/Coalescent_theory) genealogical histories with a flexible markup language for conditioning on demographic history. This package can be used as a building-block in pipelines for [simulation-based inference](https://en.wikipedia.org/wiki/Approximate_Bayesian_computation) in population genetics research.  
