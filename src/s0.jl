@@ -182,24 +182,24 @@ end
 
 
 
-"""
-    _sim_markov(model::ModelFGY, sampletimes::Array{Float64}, samplestates::Array{String}, computedescendants::Bool; odemethod = :(AutoTsit5(Rosenbrock23())), ytol = 1e-6)
-
-Simulate a coalescent tree using a Markovian coalescent algorithm for a structured population model.
-
-# Arguments
-- `model::ModelFGY`: The structured FGY model to simulate
-- `sampletimes::Array{Float64}`: Array of sample times
-- `samplestates::Array{String}`: Array of sample states (demes)
-- `computedescendants::Bool`: Whether to compute descendants for each node
-
-# Keywords
-- `odemethod = :(AutoTsit5(Rosenbrock23()))`: The ODE solver method to use
-- `ytol::Float64 = 1e-6`: Tolerance for numerical stability in rate calculations
-
-# Returns
-- `SimTree`: The simulated coalescent tree
-"""
+# """
+#     _sim_markov(model::ModelFGY, sampletimes::Array{Float64}, samplestates::Array{String}, computedescendants::Bool; odemethod = :(AutoTsit5(Rosenbrock23())), ytol = 1e-6)
+#
+# Simulate a coalescent tree using a Markovian coalescent algorithm for a structured population model.
+#
+# # Arguments
+# - `model::ModelFGY`: The structured FGY model to simulate
+# - `sampletimes::Array{Float64}`: Array of sample times
+# - `samplestates::Array{String}`: Array of sample states (demes)
+# - `computedescendants::Bool`: Whether to compute descendants for each node
+#
+# # Keywords
+# - `odemethod = :(AutoTsit5(Rosenbrock23()))`: The ODE solver method to use
+# - `ytol::Float64 = 1e-6`: Tolerance for numerical stability in rate calculations
+#
+# # Returns
+# - `SimTree`: The simulated coalescent tree
+# """
 function _sim_markov( model::ModelFGY
 		     , sampletimes::Array{Float64}
 		     , samplestates::Array{String}

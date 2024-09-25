@@ -25,18 +25,18 @@ mutable struct Event
 	source::Union{Nothing,String}
 	sink::Union{Nothing,String}
 end
-"""
-    Event(t::Int, b::Real)
-
-Constructor for Event with only type and height specified.
-
-# Arguments
-- `t::Int`: Type of the event
-- `b::Real`: Height (time) of the event
-
-# Returns
-- `Event`: The constructed event
-"""
+# """
+#     Event(t::Int, b::Real)
+#
+# Constructor for Event with only type and height specified.
+#
+# # Arguments
+# - `t::Int`: Type of the event
+# - `b::Real`: Height (time) of the event
+#
+# # Returns
+# - `Event`: The constructed event
+# """
 function Event(t::Int,b::Real) 
 	@assert t in [SAMPLE,COALESCENT,MIGRATION,RECOMBINATION] 
 	Event( t, b, nothing, nothing )

@@ -38,16 +38,16 @@ mutable struct Reaction
 	end
 end
 
-"""
-	Reaction(s::String, t::Int, e::Union{Symbol,Expr})
-
-Constructor for Reaction without a recipient (for death and dynamic variable reactions).
-
-# Arguments
-- `s::String`: Source deme or variable
-- `t::Int`: Type of reaction (should be RXN_DEATH or RXN_DYNVAR)
-- `e::Union{Symbol,Expr}`: Expression defining the reaction rate
-"""
+# """
+# 	Reaction(s::String, t::Int, e::Union{Symbol,Expr})
+#
+# Constructor for Reaction without a recipient (for death and dynamic variable reactions).
+#
+# # Arguments
+# - `s::String`: Source deme or variable
+# - `t::Int`: Type of reaction (should be RXN_DEATH or RXN_DYNVAR)
+# - `e::Union{Symbol,Expr}`: Expression defining the reaction rate
+# """
 function Reaction(s::String, t::Int, e::Union{Symbol,Expr})
 	@assert t in [ RXN_DEATH, RXN_DYNVAR ]
 	Reaction(s, nothing, t
