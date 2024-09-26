@@ -24,11 +24,9 @@ using OrdinaryDiffEq
 using Statistics
 using Random
 using Distributions
-using RCall
 using Interpolations
 using Plots
 using StatsBase
-using Debugger
 
 # "Reaction types defining rates of genealogical events." 
 const RXN_BIRTH = 0 

@@ -13,4 +13,5 @@ makedocs(;
 )
 
 
-deploydocs( repo = "github.com/emvolz/Coalescent.jl.git" )
+deploydocs( repo = "github.com/emvolz/Coalescent.jl.git"
+	   , branch="gh-pages" )
