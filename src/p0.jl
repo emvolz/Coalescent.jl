@@ -382,7 +382,6 @@ User-specified Ne(t) function
 	try
 		X = [cou cointerp.(cou) -ones(n-1) repeat([COALESCENT], n-1) ]
 	catch
-		@bp 
 		Error("Interpolation Error.")
 	end
 	X = [X ; 
