@@ -6,9 +6,10 @@ Coalescent simulation and analysis with flexible markup of demographic processes
 This module provides tools for:
 
 - Simulating coalescent trees
-- Handling structured population models
+- Handling structured population models  
 - Solving ordinary differential equations for population dynamics
 - Managing sample configuration
+- DSL for defining models in pure Julia (NEW!)
 
 """
 module Coalescent
@@ -16,6 +17,8 @@ module Coalescent
 export SimTree,  tonewick
 export ModelFGY, solveodes
 export SampleConfiguration
+# DSL exports - the new treasure for model definition!
+export @model, CoalescentModel, to_modelfgy
 
 using YAML 
 using CSV
@@ -49,5 +52,8 @@ include("m0.jl")
 include("a0.jl")
 include("p0.jl")
 include("s0.jl")
+# Include our new DSL components - the crown jewels!
+include("dsl.jl")
+include("dsl_conversion.jl")
 
 end;
