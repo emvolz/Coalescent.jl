@@ -137,6 +137,56 @@ using OrdinaryDiffEq
         @test all(!isnothing(e) for e in tree.edgelength)
     end
 
+    @testset "SimTree structured model with migration" begin
+        # Regression: with odemethod AutoTsit5(Rosenbrock23()), SimTree sometimes failed on this model with
+        # a MethodError, because Rosenbrock23 evaluates the event rates at ForwardDiff.Dual times
+        model_yaml = """
+        modelname: island2deme
+        births:
+          - source: A
+            recipient: A
+            rate: A^2 / (2*NeA)
+          - source: B
+            recipient: B
+            rate: B^2 / (2*NeB)
+        migrations:
+          - source: A
+            recipient: B
+            rate: mig*B
+          - source: B
+            recipient: A
+            rate: mig*A
+        deaths:
+          - deme: A
+            rate: A^2 / (2*NeA)
+          - deme: B
+            rate: B^2 / (2*NeB)
+        dynamic_variables:
+          - name: A
+            initial_value: 1.0
+          - name: B
+            initial_value: 1.0
+        time:
+          initial: 1000
+          final: 2020
+        parameters:
+          - name: NeA
+            value: 50.0
+          - name: NeB
+            value: 50.0
+          - name: mig
+            value: 1.0
+        """
+
+        model = ModelFGY(; confstr=model_yaml)
+        sample_config = SampleConfiguration([(deme, 2000.0 + 20.0*rand()) for deme in repeat(["A", "B"], inner=100)])
+
+        trees = [SimTree(model, sample_config) for _ in 1:20]
+
+        @test all(tree.n == 200 for tree in trees)
+        @test all(tree.nNode == 199 for tree in trees)
+    end
+
     @testset "tonewick" begin
         model_yaml = """
         modelname: TestModel

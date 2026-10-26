@@ -166,22 +166,26 @@ Simulate a coalescent tree based on a given model and sampling configuration.
 
 # Keywords
 - `computedescendants::Bool = false`: Whether to compute descendants for each node
+- `odemethod = :(Tsit5())`: ODE solver for the cumulative hazard of genealogical events. The hazard does not depend on the ODE state, so the problem is not stiff. Solvers that differentiate with ForwardDiff, such as `Rosenbrock23()` or `AutoTsit5(Rosenbrock23())`, can fail with a `MethodError`
+- `ytol::Float64 = 1e-6`: Lower bound on deme size relative to the number of lineages, for numerical stability of the rates
 
 # Returns
 - `SimTree`: A simulated coalescent tree
 """
-function SimTree( model::ModelFGY, sample::SampleConfiguration; computedescendants = false  )
+function SimTree( model::ModelFGY, sample::SampleConfiguration; computedescendants = false, odemethod = :(Tsit5()), ytol = 1e-6 )
 	_sim_markov( model
 	  , [ x[2] for x in sample.sconf ]
 	  , [ x[1] for x in sample.sconf ]
-	  , computedescendants 
+	  , computedescendants
+	  ; odemethod = odemethod
+	  , ytol = ytol
 	)
 end
 
 
 
 # """
-#     _sim_markov(model::ModelFGY, sampletimes::Array{Float64}, samplestates::Array{String}, computedescendants::Bool; odemethod = :(AutoTsit5(Rosenbrock23())), ytol = 1e-6)
+#     _sim_markov(model::ModelFGY, sampletimes::Array{Float64}, samplestates::Array{String}, computedescendants::Bool; odemethod = :(Tsit5()), ytol = 1e-6)
 #
 # Simulate a coalescent tree using a Markovian coalescent algorithm for a structured population model.
 #
@@ -192,7 +196,7 @@ end
 # - `computedescendants::Bool`: Whether to compute descendants for each node
 #
 # # Keywords
-# - `odemethod = :(AutoTsit5(Rosenbrock23()))`: The ODE solver method to use
+# - `odemethod = :(Tsit5())`: The ODE solver method to use (see SimTree)
 # - `ytol::Float64 = 1e-6`: Tolerance for numerical stability in rate calculations
 #
 # # Returns
@@ -204,7 +208,7 @@ function _sim_markov( model::ModelFGY
 		     #, tmrcaguess::Float64
 		     #, p... 
 		     , computedescendants::Bool 
-		     ; odemethod = :(AutoTsit5(Rosenbrock23()))
+		     ; odemethod = :(Tsit5())
 		     , ytol = 1e-6
 	)
 	n = length( sampletimes )
